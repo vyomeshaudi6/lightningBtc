@@ -132,7 +132,8 @@ type server struct {
 
 	start sync.Once
 	stop  sync.Once
-
+// added user id for server instances on multiple port and checking them on time of lightning commands  
+User_Id string
 	// identityPriv is the private key used to authenticate any incoming
 	// connections.
 	identityPriv *btcec.PrivateKey
@@ -327,18 +328,22 @@ func newServer(listenAddrs []net.Addr, chanDB *channeldb.DB,
 
 	var err error
 
-	listeners := make([]net.Listener, len(listenAddrs))
-	for i, listenAddr := range listenAddrs {
+	listeners := make([]net.Listener, 1)
+	for _, listenAddr := range listenAddrs {
 		// Note: though brontide.NewListener uses ResolveTCPAddr, it
 		// doesn't need to call the general lndResolveTCP function
 		// since we are resolving a local address.
-		listeners[i], err = brontide.NewListener(
+		listeners[0], err = brontide.NewListener(
 			privKey, listenAddr.String(),
+
 		)
 		if err != nil {
-			return nil, err
+			continue
 		}
-	}
+
+                break
+	}           
+
 
 	globalFeatures := lnwire.NewRawFeatureVector()
 
@@ -406,6 +411,8 @@ func newServer(listenAddrs []net.Addr, chanDB *channeldb.DB,
 	}
 
 	s := &server{
+		// added userid 
+		User_Id:        UserId,
 		chanDB:         chanDB,
 		cc:             cc,
 		sigPool:        lnwallet.NewSigPool(cfg.Workers.Sig, cc.signer),

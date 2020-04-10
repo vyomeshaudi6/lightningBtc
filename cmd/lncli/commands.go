@@ -37,7 +37,7 @@ import (
 // TODO(roasbeef): expose all fee conf targets
 
 const defaultRecoveryWindow int32 = 2500
-
+var UniqueId string = "Default"
 func printJSON(resp interface{}) {
 	b, err := json.Marshal(resp)
 	if err != nil {
@@ -70,6 +70,17 @@ func printRespJSON(resp proto.Message) {
 // to command actions.
 func actionDecorator(f func(*cli.Context) error) func(*cli.Context) error {
 	return func(c *cli.Context) error {
+		  //code edit
+		  fmt.Println(" userd id is set to global variable after this line ")
+		  UniqueId = c.GlobalString("User_Id")
+		  fmt.Printf(" unique id is set now %s \n",UniqueId)
+		  //-----end/////
+		  //custom domain check to get userid from  domain name in cli 
+		  fmt.Printf("\nrestlisten domain %s\n",c.GlobalString("rpcserver"))
+		  //if( c.GlobalString("rpcserver")[0:(strings.LastIndex(c.GlobalString("rpcserver"),":"))] != "localhost") {
+		  //UniqueId= c.GlobalString("rpcserver")[0:(strings.LastIndex(c.GlobalString("rpcserver"),"."))]
+		  fmt.Printf("unique id is set now %s \n",UniqueId)
+		  //}
 		if err := f(c); err != nil {
 			s, ok := status.FromError(err)
 
@@ -139,6 +150,7 @@ func newAddress(ctx *cli.Context) error {
 	ctxb := context.Background()
 	addr, err := client.NewAddress(ctxb, &lnrpc.NewAddressRequest{
 		Type: addrType,
+		User_Id: UniqueId,
 	})
 	if err != nil {
 		return err
@@ -185,6 +197,7 @@ func estimateFees(ctx *cli.Context) error {
 	resp, err := client.EstimateFee(ctxb, &lnrpc.EstimateFeeRequest{
 		AddrToAmount: amountToAddr,
 		TargetConf:   int32(ctx.Int64("conf_target")),
+		User_Id: UniqueId,
 	})
 	if err != nil {
 		return err
@@ -295,6 +308,7 @@ func sendCoins(ctx *cli.Context) error {
 		TargetConf: int32(ctx.Int64("conf_target")),
 		SatPerByte: ctx.Int64("sat_per_byte"),
 		SendAll:    ctx.Bool("sweepall"),
+		User_Id: UniqueId,
 	}
 	txid, err := client.SendCoins(ctxb, req)
 	if err != nil {
@@ -402,6 +416,7 @@ func listUnspent(ctx *cli.Context) error {
 	req := &lnrpc.ListUnspentRequest{
 		MinConfs: int32(minConfirms),
 		MaxConfs: int32(maxConfirms),
+		User_Id: UniqueId,
 	}
 	resp, err := client.ListUnspent(ctxb, req)
 	if err != nil {
@@ -475,6 +490,7 @@ func sendMany(ctx *cli.Context) error {
 		AddrToAmount: amountToAddr,
 		TargetConf:   int32(ctx.Int64("conf_target")),
 		SatPerByte:   ctx.Int64("sat_per_byte"),
+		User_Id: UniqueId,
 	})
 	if err != nil {
 		return err
@@ -519,6 +535,7 @@ func connectPeer(ctx *cli.Context) error {
 	req := &lnrpc.ConnectPeerRequest{
 		Addr: addr,
 		Perm: ctx.Bool("perm"),
+		User_Id: UniqueId,
 	}
 
 	lnid, err := client.ConnectPeer(ctxb, req)
@@ -562,6 +579,7 @@ func disconnectPeer(ctx *cli.Context) error {
 
 	req := &lnrpc.DisconnectPeerRequest{
 		PubKey: pubKey,
+		User_Id: UniqueId,
 	}
 
 	lnid, err := client.DisconnectPeer(ctxb, req)
@@ -664,6 +682,7 @@ func closeChannel(ctx *cli.Context) error {
 		TargetConf:      int32(ctx.Int64("conf_target")),
 		SatPerByte:      ctx.Int64("sat_per_byte"),
 		DeliveryAddress: ctx.String("delivery_addr"),
+		User_Id: UniqueId,
 	}
 
 	// After parsing the request, we'll spin up a goroutine that will
@@ -791,7 +810,9 @@ func closeAllChannels(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	listReq := &lnrpc.ListChannelsRequest{}
+	listReq := &lnrpc.ListChannelsRequest{
+		User_Id: UniqueId,
+	}
 	openChannels, err := client.ListChannels(context.Background(), listReq)
 	if err != nil {
 		return fmt.Errorf("unable to fetch open channels: %v", err)
@@ -920,6 +941,7 @@ func closeAllChannels(ctx *cli.Context) error {
 				Force:      !channel.GetActive(),
 				TargetConf: int32(ctx.Int64("conf_target")),
 				SatPerByte: ctx.Int64("sat_per_byte"),
+				User_Id: UniqueId,
 			}
 
 			txidChan := make(chan string, 1)
@@ -1016,6 +1038,7 @@ func abandonChannel(ctx *cli.Context) error {
 
 	req := &lnrpc.AbandonChannelRequest{
 		ChannelPoint: channelPoint,
+		User_Id: UniqueId,
 	}
 
 	resp, err := client.AbandonChannel(ctxb, req)
@@ -1086,6 +1109,7 @@ func listPeers(ctx *cli.Context) error {
 	// specifically requests a full error set, then we will provide it.
 	req := &lnrpc.ListPeersRequest{
 		LatestError: !ctx.IsSet("list_errors"),
+		User_Id: UniqueId,
 	}
 	resp, err := client.ListPeers(ctxb, req)
 	if err != nil {
@@ -1393,6 +1417,7 @@ mnemonicCheck:
 
 		genSeedReq := &lnrpc.GenSeedRequest{
 			AezeedPassphrase: aezeedPass,
+			User_Id: UniqueId,
 		}
 		seedResp, err := client.GenSeed(ctxb, genSeedReq)
 		if err != nil {
@@ -1432,6 +1457,7 @@ mnemonicCheck:
 		AezeedPassphrase:   aezeedPass,
 		RecoveryWindow:     recoveryWindow,
 		ChannelBackups:     chanBackups,
+		User_Id: UniqueId,
 	}
 	if _, err := client.InitWallet(ctxb, req); err != nil {
 		return err
@@ -1581,6 +1607,7 @@ func unlock(ctx *cli.Context) error {
 	req := &lnrpc.UnlockWalletRequest{
 		WalletPassword: pw,
 		RecoveryWindow: recoveryWindow,
+		User_Id: UniqueId,
 	}
 	_, err = client.UnlockWallet(ctxb, req)
 	if err != nil {
@@ -1644,6 +1671,7 @@ func changePassword(ctx *cli.Context) error {
 	req := &lnrpc.ChangePasswordRequest{
 		CurrentPassword: currentPw,
 		NewPassword:     newPw,
+		User_Id: UniqueId,
 	}
 
 	_, err = client.ChangePassword(ctxb, req)
@@ -1666,7 +1694,9 @@ func walletBalance(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.WalletBalanceRequest{}
+	req := &lnrpc.WalletBalanceRequest{
+		User_Id: UniqueId,
+	}
 	resp, err := client.WalletBalance(ctxb, req)
 	if err != nil {
 		return err
@@ -1689,7 +1719,9 @@ func channelBalance(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.ChannelBalanceRequest{}
+	req := &lnrpc.ChannelBalanceRequest{
+		User_Id: UniqueId,
+	}
 	resp, err := client.ChannelBalance(ctxb, req)
 	if err != nil {
 		return err
@@ -1710,7 +1742,9 @@ func getInfo(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.GetInfoRequest{}
+	req := &lnrpc.GetInfoRequest{
+		User_Id: UniqueId,
+	}
 	resp, err := client.GetInfo(ctxb, req)
 	if err != nil {
 		return err
@@ -1732,7 +1766,9 @@ func pendingChannels(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.PendingChannelsRequest{}
+	req := &lnrpc.PendingChannelsRequest{
+		User_Id: UniqueId,
+	}
 	resp, err := client.PendingChannels(ctxb, req)
 	if err != nil {
 		return err
@@ -1799,6 +1835,7 @@ func listChannels(ctx *cli.Context) error {
 		PublicOnly:   ctx.Bool("public_only"),
 		PrivateOnly:  ctx.Bool("private_only"),
 		Peer:         peerKey,
+		User_Id: UniqueId,
 	}
 
 	resp, err := client.ListChannels(ctxb, req)
@@ -1861,6 +1898,7 @@ func closedChannels(ctx *cli.Context) error {
 		Breach:          ctx.Bool("breach"),
 		FundingCanceled: ctx.Bool("funding_canceled"),
 		Abandoned:       ctx.Bool("abandoned"),
+		User_Id: UniqueId,
 	}
 
 	resp, err := client.ClosedChannels(ctxb, req)
@@ -1896,6 +1934,7 @@ func describeGraph(ctx *cli.Context) error {
 
 	req := &lnrpc.ChannelGraphRequest{
 		IncludeUnannounced: ctx.Bool("include_unannounced"),
+		User_Id: UniqueId,
 	}
 
 	graph, err := client.DescribeGraph(context.Background(), req)
@@ -1921,6 +1960,7 @@ func getNodeMetrics(ctx *cli.Context) error {
 
 	req := &lnrpc.NodeMetricsRequest{
 		Types: []lnrpc.NodeMetricType{lnrpc.NodeMetricType_BETWEENNESS_CENTRALITY},
+		User_Id: UniqueId,
 	}
 
 	nodeMetrics, err := client.GetNodeMetrics(context.Background(), req)
@@ -1986,6 +2026,7 @@ func listPayments(ctx *cli.Context) error {
 		IndexOffset:       uint64(ctx.Uint("index_offset")),
 		MaxPayments:       uint64(ctx.Uint("max_payments")),
 		Reversed:          !ctx.Bool("paginate_forwards"),
+		User_Id: UniqueId,
 	}
 
 	payments, err := client.ListPayments(context.Background(), req)
@@ -2037,6 +2078,7 @@ func getChanInfo(ctx *cli.Context) error {
 
 	req := &lnrpc.ChanInfoRequest{
 		ChanId: uint64(chanID),
+		User_Id: UniqueId,
 	}
 
 	chanInfo, err := client.GetChanInfo(ctxb, req)
@@ -2089,6 +2131,7 @@ func getNodeInfo(ctx *cli.Context) error {
 	req := &lnrpc.NodeInfoRequest{
 		PubKey:          pubKey,
 		IncludeChannels: ctx.Bool("include_channels"),
+		User_Id: UniqueId,
 	}
 
 	nodeInfo, err := client.GetNodeInfo(ctxb, req)
@@ -2187,6 +2230,7 @@ func queryRoutes(ctx *cli.Context) error {
 		FinalCltvDelta:    int32(ctx.Int("final_cltv_delta")),
 		UseMissionControl: ctx.Bool("use_mc"),
 		CltvLimit:         uint32(ctx.Uint64(cltvLimitFlag.Name)),
+		User_Id: UniqueId,
 	}
 
 	route, err := client.QueryRoutes(ctxb, req)
@@ -2221,6 +2265,7 @@ func retrieveFeeLimitLegacy(ctx *cli.Context) (*lnrpc.FeeLimit, error) {
 		return &lnrpc.FeeLimit{
 			Limit: &lnrpc.FeeLimit_Percent{
 				Percent: feeLimitPercent,
+				User_Id: UniqueId,
 			},
 		}, nil
 	}
@@ -2245,7 +2290,9 @@ func getNetworkInfo(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.NetworkInfoRequest{}
+	req := &lnrpc.NetworkInfoRequest{
+		User_Id: UniqueId,
+	}
 
 	netInfo, err := client.GetNetworkInfo(ctxb, req)
 	if err != nil {
@@ -2283,6 +2330,7 @@ func debugLevel(ctx *cli.Context) error {
 	req := &lnrpc.DebugLevelRequest{
 		Show:      ctx.Bool("show"),
 		LevelSpec: ctx.String("level"),
+		User_Id: UniqueId,
 	}
 
 	resp, err := client.DebugLevel(ctxb, req)
@@ -2307,7 +2355,9 @@ func listChainTxns(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	resp, err := client.GetTransactions(ctxb, &lnrpc.GetTransactionsRequest{})
+	resp, err := client.GetTransactions(ctxb, &lnrpc.GetTransactionsRequest{
+		User_Id: UniqueId,
+	})
 
 	if err != nil {
 		return err
@@ -2331,7 +2381,9 @@ func stopDaemon(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	_, err := client.StopDaemon(ctxb, &lnrpc.StopRequest{})
+	_, err := client.StopDaemon(ctxb, &lnrpc.StopRequest{
+		User_Id: UniqueId,
+	})
 	if err != nil {
 		return err
 	}
@@ -2374,7 +2426,9 @@ func signMessage(ctx *cli.Context) error {
 		return fmt.Errorf("msg argument missing")
 	}
 
-	resp, err := client.SignMessage(ctxb, &lnrpc.SignMessageRequest{Msg: msg})
+	resp, err := client.SignMessage(ctxb, &lnrpc.SignMessageRequest{Msg: msg,
+		User_Id: UniqueId,
+	})
 	if err != nil {
 		return err
 	}
@@ -2438,7 +2492,7 @@ func verifyMessage(ctx *cli.Context) error {
 		return fmt.Errorf("signature argument missing")
 	}
 
-	req := &lnrpc.VerifyMessageRequest{Msg: msg, Signature: sig}
+	req := &lnrpc.VerifyMessageRequest{Msg: msg, Signature: sig,User_Id: UniqueId,}
 	resp, err := client.VerifyMessage(ctxb, req)
 	if err != nil {
 		return err
@@ -2463,7 +2517,7 @@ func feeReport(ctx *cli.Context) error {
 	client, cleanUp := getClient(ctx)
 	defer cleanUp()
 
-	req := &lnrpc.FeeReportRequest{}
+	req := &lnrpc.FeeReportRequest{User_Id: UniqueId,}
 	resp, err := client.FeeReport(ctxb, req)
 	if err != nil {
 		return err
@@ -2630,6 +2684,7 @@ func updateChannelPolicy(ctx *cli.Context) error {
 		FeeRate:       feeRate,
 		TimeLockDelta: uint32(timeLockDelta),
 		MaxHtlcMsat:   ctx.Uint64("max_htlc_msat"),
+		User_Id: UniqueId,
 	}
 
 	if ctx.IsSet("min_htlc_msat") {
@@ -2765,6 +2820,7 @@ func forwardingHistory(ctx *cli.Context) error {
 		EndTime:      endTime,
 		IndexOffset:  indexOffset,
 		NumMaxEvents: maxEvents,
+		User_Id: UniqueId,
 	}
 	resp, err := client.ForwardingHistory(ctxb, req)
 	if err != nil {
@@ -2865,6 +2921,7 @@ func exportChanBackup(ctx *cli.Context) error {
 		chanBackup, err := client.ExportChannelBackup(
 			ctxb, &lnrpc.ExportChannelBackupRequest{
 				ChanPoint: chanPointRPC,
+				User_Id: UniqueId,
 			},
 		)
 		if err != nil {
@@ -2898,7 +2955,9 @@ func exportChanBackup(ctx *cli.Context) error {
 	}
 
 	chanBackup, err := client.ExportAllChannelBackups(
-		ctxb, &lnrpc.ChanBackupExportRequest{},
+		ctxb, &lnrpc.ChanBackupExportRequest{
+			User_Id: UniqueId,
+		},
 	)
 	if err != nil {
 		return err
@@ -2989,7 +3048,7 @@ func verifyChanBackup(ctx *cli.Context) error {
 		return err
 	}
 
-	verifyReq := lnrpc.ChanBackupSnapshot{}
+	verifyReq := lnrpc.ChanBackupSnapshot{User_Id: UniqueId,}
 
 	if backups.GetChanBackups() != nil {
 		verifyReq.SingleChanBackups = backups.GetChanBackups()
@@ -3126,8 +3185,8 @@ func restoreChanBackup(ctx *cli.Context) error {
 		return nil
 	}
 
-	var req lnrpc.RestoreChanBackupRequest
-
+	//var req lnrpc.RestoreChanBackupRequest
+	req := lnrpc.RestoreChanBackupRequest{User_Id: UniqueId,}
 	backups, err := parseChanBackups(ctx)
 	if err != nil {
 		return err

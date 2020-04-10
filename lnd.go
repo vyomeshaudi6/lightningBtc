@@ -54,11 +54,15 @@ import (
 var (
 	cfg              *config
 	registeredChains = newChainRegistry()
-
+	ChanDB           *channeldb.DB // channel.db
 	// networkDir is the path to the directory of the currently active
 	// network. This path will hold the files related to each different
 	// network.
 	networkDir string
+	graphDir   string
+	RpcserverInstances []*rpcServer
+	UserId             string // added userid for multiple server instances and passed to new server func
+	
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -168,7 +172,13 @@ func Main(lisCfg ListenerCfg) error {
 			ltndLog.Errorf("Could not close log rotator: %v", err)
 		}
 	}()
-
+	//sql database connection
+/*	conn, err := sqlite3.Open("/Users/vyomesh/Library/Application Support/Lnd/opochdb.sqlite3")
+	if err != nil {
+		ltndLog.Error(fmt.Errorf("sql connection error: %v", err))
+	}
+	defer conn.Close()
+*/	//conn.BusyTimeout(5 * time.Second)
 	// Show version at startup.
 	ltndLog.Infof("Version: %s, build=%s, logging=%s",
 		build.Version(), build.Deployment, build.LoggingType)
@@ -228,7 +238,7 @@ func Main(lisCfg ListenerCfg) error {
 
 	// Open the channeldb, which is dedicated to storing channel, and
 	// network related metadata.
-	startOpenTime := time.Now()
+/*	startOpenTime := time.Now()
 	chanDB, err := channeldb.Open(
 		graphDir,
 		channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
@@ -244,15 +254,15 @@ func Main(lisCfg ListenerCfg) error {
 
 	openTime := time.Since(startOpenTime)
 	ltndLog.Infof("Database now open (time_to_open=%v)!", openTime)
-
+*/
 	// Only process macaroons if --no-macaroons isn't set.
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	tlsCfg, restCreds, restProxyDest, err := getTLSConfig(
+	tlsCfg, restCreds, err := getTLSConfig(
 		cfg.TLSCertPath, cfg.TLSKeyPath, cfg.TLSExtraIPs,
-		cfg.TLSExtraDomains, cfg.RPCListeners,
+		cfg.TLSExtraDomains,
 	)
 	if err != nil {
 		err := fmt.Errorf("Unable to load TLS credentials: %v", err)
@@ -311,32 +321,50 @@ func Main(lisCfg ListenerCfg) error {
 	// getListeners is a closure that creates listeners from the
 	// RPCListeners defined in the config. It also returns a cleanup
 	// closure and the server options to use for the GRPC server.
-	getListeners := func() ([]*ListenerWithSignal, func(), error) {
-		var grpcListeners []*ListenerWithSignal
-		for _, grpcEndpoint := range cfg.RPCListeners {
-			// Start a gRPC server listening for HTTP/2
-			// connections.
-			lis, err := lncfg.ListenOnAddress(grpcEndpoint)
-			if err != nil {
-				ltndLog.Errorf("unable to listen on %s",
-					grpcEndpoint)
-				return nil, nil, err
+	getListeners := func(callerservice string) ([]net.Listener, func(), []grpc.ServerOption,
+		error) {
+		var grpcListeners []net.Listener
+		//modified added caller service check in order to reserve rpc 1st port for wallet unlocker service and remaining for lightning service
+		if callerservice == "walletaction" {
+			for _, grpcEndpoint := range cfg.RPCListeners {
+				// Start a gRPC server listening for HTTP/2
+				// connections.
+				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
+				if err != nil {
+					ltndLog.Errorf("unable to listen on %s",
+						grpcEndpoint)
+					continue
+					//return nil, nil, nil, err
+				}
+				grpcListeners = append(grpcListeners, lis)
+				break
 			}
-			grpcListeners = append(
-				grpcListeners, &ListenerWithSignal{
-					Listener: lis,
-					Ready:    make(chan struct{}),
-				})
+		} else {
+			for i, grpcEndpoint := range cfg.RPCListeners {
+				// Start a gRPC server listening for HTTP/2
+				// connections.
+				//skipped the first iteration inorder to save the first rpc port for walletunlocker service
+				if i == 0 {
+					continue
+				}
+				lis, err := lncfg.ListenOnAddress(grpcEndpoint)
+				if err != nil {
+					ltndLog.Errorf("unable to listen on %s",
+						grpcEndpoint)
+					continue
+					//return nil, nil, nil, err
+				}
+				grpcListeners = append(grpcListeners, lis)
+				break
+			}
 		}
-
 		cleanup := func() {
 			for _, lis := range grpcListeners {
 				lis.Close()
 			}
 		}
-		return grpcListeners, cleanup, nil
+		return grpcListeners, cleanup, serverOpts, nil
 	}
-
 	// walletUnlockerListeners is a closure we'll hand to the wallet
 	// unlocker, that will be called when it needs listeners for its GPRC
 	// server.
@@ -351,12 +379,42 @@ func Main(lisCfg ListenerCfg) error {
 		}
 
 		// Otherwise we'll return the regular listeners.
-		return getListeners()
+		return return getListeners("walletaction")
 	}
+	listeners := make([]*net.TCPListener, len(cfg.Listeners))
+	for i, tcplistenAddr := range cfg.Listeners {
+		addr, err := net.ResolveTCPAddr("tcp", tcplistenAddr.String())
+		if err != nil {
+			return err
+		}
 
+		l, err := net.ListenTCP("tcp", addr)
+		if err != nil {
+			return err
+		}
+
+		listeners[i] = l
+	}
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
+	// for loop edit
+	for i := 0; i < 3; i++ {
+		walletInitParams.Birthday = time.Now()
+		// code modified to get rest proxy set accoring to rpc port i.e linking rpc port and rest proxy port together
+		// restproxy des modified linkednd 1st rpc port and 1st rest port for wallet unlocker service
+		restProxyDest := cfg.RPCListeners[0].String()
+		switch {
+		case strings.Contains(restProxyDest, "0.0.0.0"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "0.0.0.0", "127.0.0.1", 1,
+			)
+
+		case strings.Contains(restProxyDest, "[::]"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "[::]", "[::1]", 1,
+			)
+		}
 	if !cfg.NoSeedBackup {
 		params, err := waitForWalletPassword(
 			cfg.RESTListeners, serverOpts, restDialOpts,
@@ -379,7 +437,22 @@ func Main(lisCfg ListenerCfg) error {
 				walletInitParams.RecoveryWindow)
 		}
 	}
+	defer ChanDB.Close() // channel.db
 
+	// macaroons edit
+	// If a custom macaroon directory wasn't specified and the data
+	// directory has changed from the default path, then we'll also update
+	// the path for the macaroons to be generated.
+
+	cfg.AdminMacPath = filepath.Join(
+		graphDir, DefaultAdminMacFilename,
+	)
+	cfg.ReadMacPath = filepath.Join(
+		graphDir, DefaultReadMacFilename,
+	)
+	cfg.InvoiceMacPath = filepath.Join(
+		graphDir, DefaultInvoiceMacFilename,
+	)
 	var macaroonService *macaroons.Service
 	if !cfg.NoMacaroons {
 		// Create the macaroon authentication/authorization service.
@@ -582,13 +655,19 @@ func Main(lisCfg ListenerCfg) error {
 	server, err := newServer(
 		cfg.Listeners, chanDB, towerClientDB, activeChainControl,
 		idPrivKey, walletInitParams.ChansToRestore, chainedAcceptor,
-		torController,
+		torController,UserId,
 	)
 	if err != nil {
 		err := fmt.Errorf("Unable to create server: %v", err)
 		ltndLog.Error(err)
 		return err
 	}
+	// sql insert into table (is_active,is_deleted,created_at,updated_at,channel_id,macaroons_encrypted,opening_tx_id,closing_tx_id, allocated,pub_key,closed,macaroons_encrypted,macaroons_sent,macaroons_deleted,port, user_id)
+	/*	err = conn.Exec("INSERT INTO nms_interface  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",435,false,false,"null","null","null","null","null","null",false,hex.EncodeToString(idPrivKey.PubKey().SerializeCompressed()),false,false,false,false,cfg.Listeners[i].String(),UserId)
+		if err != nil {
+			ltndLog.Error(fmt.Errorf("sql insert into table  error: %v", err))
+		}
+	*/	
 
 	// Set up an autopilot manager from the current config. This will be
 	// used to manage the underlying autopilot agent, starting and stopping
@@ -624,7 +703,21 @@ func Main(lisCfg ListenerCfg) error {
 		}
 
 		// Otherwise we'll return the regular listeners.
-		return getListeners()
+		return ggetListeners("lightningaction")
+	}
+
+	// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
+	restProxyDest = cfg.RPCListeners[1].String()
+	switch {
+	case strings.Contains(restProxyDest, "0.0.0.0"):
+		restProxyDest = strings.Replace(
+			restProxyDest, "0.0.0.0", "127.0.0.1", 1,
+		)
+
+	case strings.Contains(restProxyDest, "[::]"):
+		restProxyDest = strings.Replace(
+			restProxyDest, "[::]", "[::1]", 1,
+		)
 	}
 
 	// Initialize, and register our implementation of the gRPC interface
@@ -634,6 +727,8 @@ func Main(lisCfg ListenerCfg) error {
 		restDialOpts, restProxyDest, atplManager, server.invoices,
 		tower, tlsCfg, rpcListeners, chainedAcceptor,
 	)
+	//code edit storing instances of rpcserve in slice
+	RpcserverInstances = append(RpcserverInstances, rpcServer)
 	if err != nil {
 		err := fmt.Errorf("Unable to create RPC server: %v", err)
 		ltndLog.Error(err)
@@ -725,7 +820,7 @@ func Main(lisCfg ListenerCfg) error {
 		}
 		defer tower.Stop()
 	}
-
+} //for loop ends
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.
 	<-signal.ShutdownChannel()
@@ -735,7 +830,7 @@ func Main(lisCfg ListenerCfg) error {
 // getTLSConfig returns a TLS configuration for the gRPC server and credentials
 // and a proxy destination for the REST reverse proxy.
 func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
-	tlsExtraDomains []string, rpcListeners []net.Addr) (*tls.Config,
+	tlsExtraDomains []string) (*tls.Config,
 	*credentials.TransportCredentials, string, error) {
 
 	// Ensure we create TLS key and certificate if they don't exist.
@@ -811,7 +906,7 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 		return nil, nil, "", err
 	}
 
-	restProxyDest := rpcListeners[0].String()
+/*	restProxyDest := rpcListeners[0].String()
 	switch {
 	case strings.Contains(restProxyDest, "0.0.0.0"):
 		restProxyDest = strings.Replace(
@@ -823,8 +918,8 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			restProxyDest, "[::]", "[::1]", 1,
 		)
 	}
-
-	return tlsCfg, &restCreds, restProxyDest, nil
+*/
+	return tlsCfg, &restCreds, nil
 }
 
 // fileExists reports whether the named file or directory exists.
@@ -955,10 +1050,13 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 	// also encrypted with the wallet's password. These files will be
 	// deleted within it and recreated when successfully changing the
 	// wallet's password.
-	macaroonFiles := []string{
-		filepath.Join(networkDir, macaroons.DBFilename),
+	/*macaroonFiles := []string{
+		filepath.Join(graphDir, macaroons.DBFilename),
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
+	*/
+	// so passing an empty string we can delete it later or remove the field from struct
+	macaroonFiles := []string{}
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, activeNetParams.Params, !cfg.SyncFreelist,
 		macaroonFiles,
@@ -976,7 +1074,7 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 				lis.Addr())
 
 			// Close the ready chan to indicate we are listening.
-			close(lis.Ready)
+			//close(lis.Ready)
 
 			wg.Done()
 			grpcServer.Serve(lis)
@@ -999,26 +1097,31 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 
 	srv := &http.Server{Handler: mux}
 
-	for _, restEndpoint := range restEndpoints {
-		lis, err := lncfg.TLSListenOnAddress(restEndpoint, tlsConf)
-		if err != nil {
-			ltndLog.Errorf(
-				"password gRPC proxy unable to listen on %s",
-				restEndpoint,
-			)
-			return nil, err
-		}
-		defer lis.Close()
+	for i, restEndpoint := range restEndpoints {
+		//try changing the logic unnecessary calls evertime rest is set for the same rest port i.e 1st one
+		if i == 0 {
+			lis, err := lncfg.TLSListenOnAddress(restEndpoint, tlsConf)
+			if err != nil {
+				ltndLog.Errorf(
+					"password gRPC proxy unable to listen on %s",
+					restEndpoint,
+				)
+				continue
+				//return nil, err //
+			}
+			defer lis.Close()
 
-		wg.Add(1)
-		go func() {
-			rpcsLog.Infof(
-				"password gRPC proxy started at %s",
-				lis.Addr(),
-			)
-			wg.Done()
-			srv.Serve(lis)
-		}()
+			wg.Add(1)
+			go func() {
+				rpcsLog.Infof(
+					"password gRPC proxy started at %s",
+					lis.Addr(),
+				)
+				wg.Done()
+				srv.Serve(lis)
+			}()
+			break
+		}
 	}
 
 	// Wait for gRPC and REST servers to be up running.
@@ -1053,10 +1156,16 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 				cipherSeed.InternalVersion,
 				keychain.KeyDerivationVersion)
 		}
+//code modify by -----start--------
+		//netDir := btcwallet.NetworkDir(
+		//	chainConfig.ChainDir, activeNetParams.Params,
+		//)
+		graphDir = filepath.Join("test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), initMsg.UniqueId)
+		netDir := graphDir
 
-		netDir := btcwallet.NetworkDir(
-			chainConfig.ChainDir, activeNetParams.Params,
-		)
+		//code modify by -----end--------
 		loader := wallet.NewLoader(
 			activeNetParams.Params, netDir, !cfg.SyncFreelist,
 			recoveryWindow,
@@ -1077,6 +1186,23 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 			}
 			return nil, err
 		}
+		/////----channel.db -----
+		ltndLog.Infof("lnd.go before opening channeldb.open")
+		ChanDB, err = channeldb.Open(
+			graphDir,
+			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
+			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
+			channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
+		)
+		if err != nil {
+			err := fmt.Errorf("Unable to open channeldb: %v", err)
+			ltndLog.Error(err)
+			return nil, err
+		}
+		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
+		// added userid for multiple server instance
+		UserId = initMsg.UniqueId
+
 
 		return &WalletUnlockParams{
 			Password:       password,
@@ -1089,6 +1215,26 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 	// The wallet has already been created in the past, and is simply being
 	// unlocked. So we'll just return these passphrases.
 	case unlockMsg := <-pwService.UnlockMsgs:
+		/////----channel.db -----
+		graphDir = filepath.Join("test_data_PrvW",
+			defaultGraphSubDirname,
+			normalizeNetwork(activeNetParams.Name), unlockMsg.UniqueId)
+
+		ltndLog.Infof("lnd.go before opening channeldb.open")
+		ChanDB, err = channeldb.Open(
+			graphDir,
+			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
+			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
+			channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
+		)
+		if err != nil {
+			err := fmt.Errorf("Unable to open channeldb: %v", err)
+			ltndLog.Error(err)
+			return nil, err
+		}
+		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
+		// added userid for multiple server instance
+		UserId = unlockMsg.UniqueId
 		return &WalletUnlockParams{
 			Password:       unlockMsg.Passphrase,
 			RecoveryWindow: unlockMsg.RecoveryWindow,

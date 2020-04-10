@@ -893,7 +893,7 @@ func loadConfig() (*config, error) {
 			return nil, fmt.Errorf(str, funcName)
 		}
 
-		cfg.Bitcoin.ChainDir = filepath.Join(cfg.DataDir,
+		cfg.Bitcoin.ChainDir = filepath.Join(c"/home/vyomesh/gocode/dev/tstn1/test_data",
 			defaultChainSubDirname,
 			bitcoinChain.String())
 
@@ -953,7 +953,7 @@ func loadConfig() (*config, error) {
 	// We'll now construct the network directory which will be where we
 	// store all the data specific to this chain/network.
 	networkDir = filepath.Join(
-		cfg.DataDir, defaultChainSubDirname,
+		"/home/vyomesh/gocode/dev/tstn1/test_data", defaultChainSubDirname,
 		registeredChains.PrimaryChain().String(),
 		normalizeNetwork(activeNetParams.Name),
 	)
