@@ -15,7 +15,7 @@ import (
 	"github.com/lightningnetwork/lnd/keychain"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/lnwallet"
-	"github.com/lightningnetwork/lnd/lnwallet/btcwallet"
+	//"github.com/lightningnetwork/lnd/lnwallet/btcwallet"
 )
 
 // ChannelsToRecover wraps any set of packed (serialized+encrypted) channel
@@ -54,6 +54,7 @@ type WalletInitMsg struct {
 	// ChanBackups a set of static channel backups that should be received
 	// after the wallet has been initialized.
 	ChanBackups ChannelsToRecover
+	UniqueId string
 }
 
 // WalletUnlockMsg is a message sent by the UnlockerService when a user wishes
@@ -81,6 +82,7 @@ type WalletUnlockMsg struct {
 	// ChanBackups a set of static channel backups that should be received
 	// after the wallet has been unlocked.
 	ChanBackups ChannelsToRecover
+	UniqueId string
 }
 
 // UnlockerService implements the WalletUnlocker service used to provide lnd
@@ -128,7 +130,14 @@ func (u *UnlockerService) GenSeed(ctx context.Context,
 
 	// Before we start, we'll ensure that the wallet hasn't already created
 	// so we don't show a *new* seed to the user if one already exists.
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	
+	 //code modify
+	 netDir := filepath.Join("test_data_PrvW",
+	 "graph",
+	 normalizeNetwork(u.netParams.Name),
+			 in.User_Id)
+	 //----code end ------
+//netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
 	loader := wallet.NewLoader(u.netParams, netDir, u.noFreelistSync, 0)
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -257,7 +266,14 @@ func (u *UnlockerService) InitWallet(ctx context.Context,
 
 	// We'll then open up the directory that will be used to store the
 	// wallet's files so we can check if the wallet already exists.
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	
+	//code modify 
+	netDir := filepath.Join("test_data_PrvW",
+	"graph",
+	normalizeNetwork(u.netParams.Name),
+			in.User_Id)
+	//----code end ------
+//netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
 	loader := wallet.NewLoader(
 		u.netParams, netDir, u.noFreelistSync, uint32(recoveryWindow),
 	)
@@ -293,6 +309,8 @@ func (u *UnlockerService) InitWallet(ctx context.Context,
 		Passphrase:     password,
 		WalletSeed:     cipherSeed,
 		RecoveryWindow: uint32(recoveryWindow),
+		UniqueId:       in.User_Id,
+
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -316,7 +334,13 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 	password := in.WalletPassword
 	recoveryWindow := uint32(in.RecoveryWindow)
 
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	        //code modify
+			netDir := filepath.Join("test_data_PrvW",
+			"graph",
+			normalizeNetwork(u.netParams.Name),
+					in.User_Id)
+			//----code end ------
+	//netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
 	loader := wallet.NewLoader(
 		u.netParams, netDir, u.noFreelistSync, recoveryWindow,
 	)
@@ -346,6 +370,7 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 		Passphrase:     password,
 		RecoveryWindow: recoveryWindow,
 		Wallet:         unlockedWallet,
+		UniqueId:       in.User_Id,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -369,7 +394,14 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 func (u *UnlockerService) ChangePassword(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, error) {
 
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	//code modify
+           
+	netDir := filepath.Join("test_data_PrvW",
+	"graph",
+	normalizeNetwork(u.netParams.Name),
+			in.User_Id)
+	//----code end ------
+	//netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
 	loader := wallet.NewLoader(u.netParams, netDir, u.noFreelistSync, 0)
 
 	// First, we'll make sure the wallet exists for the specific chain and
@@ -444,4 +476,13 @@ func ValidatePassword(password []byte) error {
 	}
 
 	return nil
+}
+// normalizeNetwork returns the common name of a network type used to create
+// file paths. This allows differently versioned networks to use the same path.
+func normalizeNetwork(network string) string {
+	if strings.HasPrefix(network, "testnet") {
+		return "testnet"
+	}
+
+	return network
 }

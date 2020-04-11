@@ -186,6 +186,7 @@ func sendPayment(ctx *cli.Context) error {
 		req := &routerrpc.SendPaymentRequest{
 			PaymentRequest: ctx.String("pay_req"),
 			Amt:            ctx.Int64("amt"),
+			User_Id:        ctx.GlobalString("User_Id"),//vyomesh
 		}
 
 		return sendPaymentRequest(ctx, req)
@@ -231,6 +232,8 @@ func sendPayment(ctx *cli.Context) error {
 		Dest:              destNode,
 		Amt:               amount,
 		DestCustomRecords: make(map[uint64][]byte),
+		User_Id:	ctx.GlobalString("User_Id"),
+
 	}
 
 	var rHash []byte
@@ -342,7 +345,7 @@ func sendPaymentRequest(ctx *cli.Context,
 	var feeLimit int64
 	if req.PaymentRequest != "" {
 		// Decode payment request to find out the amount.
-		decodeReq := &lnrpc.PayReqString{PayReq: req.PaymentRequest}
+		decodeReq := &lnrpc.PayReqString{PayReq: req.PaymentRequest,User_Id: req.User_Id,}
 		decodeResp, err := client.DecodePayReq(
 			context.Background(), decodeReq,
 		)
@@ -492,6 +495,7 @@ func payInvoice(ctx *cli.Context) error {
 		PaymentRequest:    payReq,
 		Amt:               ctx.Int64("amt"),
 		DestCustomRecords: make(map[uint64][]byte),
+		User_Id: UniqueId,
 	}
 
 	return sendPaymentRequest(ctx, req)
@@ -628,6 +632,8 @@ func sendToRoute(ctx *cli.Context) error {
 	req := &lnrpc.SendToRouteRequest{
 		PaymentHash: rHash,
 		Route:       route,
+		User_Id: ctx.GlobalString("User_Id"),//vyomesh
+
 	}
 
 	return sendToRouteRequest(ctx, req)
