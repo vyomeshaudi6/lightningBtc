@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"path/filepath"
+	"strings"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcwallet/wallet"
 	"github.com/lightningnetwork/lnd/aezeed"

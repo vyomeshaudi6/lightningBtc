@@ -2265,7 +2265,7 @@ func retrieveFeeLimitLegacy(ctx *cli.Context) (*lnrpc.FeeLimit, error) {
 		return &lnrpc.FeeLimit{
 			Limit: &lnrpc.FeeLimit_Percent{
 				Percent: feeLimitPercent,
-				User_Id: UniqueId,
+				
 			},
 		}, nil
 	}

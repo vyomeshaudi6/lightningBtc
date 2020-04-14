@@ -42,7 +42,7 @@ import (
 	"github.com/lightningnetwork/lnd/lncfg"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/lnwallet"
-	"github.com/lightningnetwork/lnd/lnwallet/btcwallet"
+	//"github.com/lightningnetwork/lnd/lnwallet/btcwallet"
 	"github.com/lightningnetwork/lnd/macaroons"
 	"github.com/lightningnetwork/lnd/signal"
 	"github.com/lightningnetwork/lnd/tor"
@@ -260,7 +260,7 @@ func Main(lisCfg ListenerCfg) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	tlsCfg, restCreds, err := getTLSConfig(
+	tlsCfg, restCreds,err := getTLSConfig(
 		cfg.TLSCertPath, cfg.TLSKeyPath, cfg.TLSExtraIPs,
 		cfg.TLSExtraDomains,
 	)
@@ -321,9 +321,8 @@ func Main(lisCfg ListenerCfg) error {
 	// getListeners is a closure that creates listeners from the
 	// RPCListeners defined in the config. It also returns a cleanup
 	// closure and the server options to use for the GRPC server.
-	getListeners := func(callerservice string) ([]net.Listener, func(), []grpc.ServerOption,
-		error) {
-		var grpcListeners []net.Listener
+	getListeners := func(callerservice string) ([]*ListenerWithSignal, func(),error) {
+		var grpcListeners []*ListenerWithSignal
 		//modified added caller service check in order to reserve rpc 1st port for wallet unlocker service and remaining for lightning service
 		if callerservice == "walletaction" {
 			for _, grpcEndpoint := range cfg.RPCListeners {
@@ -336,7 +335,12 @@ func Main(lisCfg ListenerCfg) error {
 					continue
 					//return nil, nil, nil, err
 				}
-				grpcListeners = append(grpcListeners, lis)
+				//grpcListeners = append(grpcListeners, lis)
+				grpcListeners = append(
+					grpcListeners, &ListenerWithSignal{
+						Listener: lis,
+						Ready:    make(chan struct{}),
+					})
 				break
 			}
 		} else {
@@ -354,7 +358,12 @@ func Main(lisCfg ListenerCfg) error {
 					continue
 					//return nil, nil, nil, err
 				}
-				grpcListeners = append(grpcListeners, lis)
+				//grpcListeners = append(grpcListeners, lis)
+				grpcListeners = append(
+					grpcListeners, &ListenerWithSignal{
+						Listener: lis,
+						Ready:    make(chan struct{}),
+					})
 				break
 			}
 		}
@@ -363,7 +372,7 @@ func Main(lisCfg ListenerCfg) error {
 				lis.Close()
 			}
 		}
-		return grpcListeners, cleanup, serverOpts, nil
+		return grpcListeners, cleanup, nil
 	}
 	// walletUnlockerListeners is a closure we'll hand to the wallet
 	// unlocker, that will be called when it needs listeners for its GPRC
@@ -379,7 +388,7 @@ func Main(lisCfg ListenerCfg) error {
 		}
 
 		// Otherwise we'll return the regular listeners.
-		return return getListeners("walletaction")
+		return  getListeners("walletaction")
 	}
 	listeners := make([]*net.TCPListener, len(cfg.Listeners))
 	for i, tcplistenAddr := range cfg.Listeners {
@@ -496,7 +505,7 @@ func Main(lisCfg ListenerCfg) error {
 	// instances of the pertinent interfaces required to operate the
 	// Lightning Network Daemon.
 	activeChainControl, err := newChainControlFromConfig(
-		cfg, chanDB, privateWalletPw, publicWalletPw,
+		cfg, ChanDB, privateWalletPw, publicWalletPw,
 		walletInitParams.Birthday, walletInitParams.RecoveryWindow,
 		walletInitParams.Wallet, neutrinoCS,
 	)
@@ -653,7 +662,7 @@ func Main(lisCfg ListenerCfg) error {
 	// Set up the core server which will listen for incoming peer
 	// connections.
 	server, err := newServer(
-		cfg.Listeners, chanDB, towerClientDB, activeChainControl,
+		cfg.Listeners, ChanDB, towerClientDB, activeChainControl,
 		idPrivKey, walletInitParams.ChansToRestore, chainedAcceptor,
 		torController,UserId,
 	)
@@ -703,7 +712,7 @@ func Main(lisCfg ListenerCfg) error {
 		}
 
 		// Otherwise we'll return the regular listeners.
-		return ggetListeners("lightningaction")
+		return getListeners("lightningaction")
 	}
 
 	// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
@@ -831,7 +840,7 @@ func Main(lisCfg ListenerCfg) error {
 // and a proxy destination for the REST reverse proxy.
 func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 	tlsExtraDomains []string) (*tls.Config,
-	*credentials.TransportCredentials, string, error) {
+	*credentials.TransportCredentials, error) {
 
 	// Ensure we create TLS key and certificate if they don't exist.
 	if !fileExists(tlsCertPath) && !fileExists(tlsKeyPath) {
@@ -842,14 +851,14 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			cert.DefaultAutogenValidity,
 		)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 		rpcsLog.Infof("Done generating TLS certificates")
 	}
 
 	certData, parsedCert, err := cert.LoadCert(tlsCertPath, tlsKeyPath)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil,  err
 	}
 
 	// We check whether the certifcate we have on disk match the IPs and
@@ -862,7 +871,7 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			parsedCert, tlsExtraIPs, tlsExtraDomains,
 		)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 	}
 
@@ -874,12 +883,12 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 
 		err := os.Remove(tlsCertPath)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 
 		err = os.Remove(tlsKeyPath)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 
 		rpcsLog.Infof("Renewing TLS certificates...")
@@ -889,21 +898,21 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			cert.DefaultAutogenValidity,
 		)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 		rpcsLog.Infof("Done renewing TLS certificates")
 
 		// Reload the certificate data.
 		certData, _, err = cert.LoadCert(tlsCertPath, tlsKeyPath)
 		if err != nil {
-			return nil, nil, "", err
+			return nil, nil,  err
 		}
 	}
 
 	tlsCfg := cert.TLSConfFromCert(certData)
 	restCreds, err := credentials.NewClientTLSFromFile(tlsCertPath, "")
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil,  err
 	}
 
 /*	restProxyDest := rpcListeners[0].String()
@@ -1030,7 +1039,7 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 
 	// Start a gRPC server listening for HTTP/2 connections, solely used
 	// for getting the encryption password from the client.
-	listeners, cleanup, err := getListeners()
+	listeners, cleanup,err := getListeners()
 	if err != nil {
 		return nil, err
 	}

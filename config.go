@@ -43,9 +43,9 @@ const (
 	defaultTowerSubDirname    = "watchtower"
 	defaultTLSCertFilename    = "tls.cert"
 	defaultTLSKeyFilename     = "tls.key"
-	defaultAdminMacFilename   = "admin.macaroon"
-	defaultReadMacFilename    = "readonly.macaroon"
-	defaultInvoiceMacFilename = "invoice.macaroon"
+	DefaultAdminMacFilename   = "admin.macaroon"
+	DefaultReadMacFilename    = "readonly.macaroon"
+	DefaultInvoiceMacFilename = "invoice.macaroon"
 	defaultLogLevel           = "info"
 	defaultLogDirname         = "logs"
 	defaultLogFilename        = "lnd.log"
@@ -893,7 +893,7 @@ func loadConfig() (*config, error) {
 			return nil, fmt.Errorf(str, funcName)
 		}
 
-		cfg.Bitcoin.ChainDir = filepath.Join(c"/home/vyomesh/gocode/dev/tstn1/test_data",
+		cfg.Bitcoin.ChainDir = filepath.Join("/home/vyomesh/gocode/dev/tstn1/test_data",
 			defaultChainSubDirname,
 			bitcoinChain.String())
 
@@ -963,17 +963,17 @@ func loadConfig() (*config, error) {
 	// the path for the macaroons to be generated.
 	if cfg.AdminMacPath == "" {
 		cfg.AdminMacPath = filepath.Join(
-			networkDir, defaultAdminMacFilename,
+			networkDir, DefaultAdminMacFilename,
 		)
 	}
 	if cfg.ReadMacPath == "" {
 		cfg.ReadMacPath = filepath.Join(
-			networkDir, defaultReadMacFilename,
+			networkDir, DefaultReadMacFilename,
 		)
 	}
 	if cfg.InvoiceMacPath == "" {
 		cfg.InvoiceMacPath = filepath.Join(
-			networkDir, defaultInvoiceMacFilename,
+			networkDir, DefaultInvoiceMacFilename,
 		)
 	}
 

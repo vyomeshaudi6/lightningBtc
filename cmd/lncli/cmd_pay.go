@@ -46,6 +46,7 @@ var (
 			"<hex_value>,.. For example: --data 3438382=0a21ff. " +
 			"Custom record ids start from 65536.",
 	}
+	//UniqueId string = "Default"
 )
 
 // paymentFlags returns common flags for sendpayment and payinvoice.
@@ -345,7 +346,7 @@ func sendPaymentRequest(ctx *cli.Context,
 	var feeLimit int64
 	if req.PaymentRequest != "" {
 		// Decode payment request to find out the amount.
-		decodeReq := &lnrpc.PayReqString{PayReq: req.PaymentRequest,User_Id: req.User_Id,}
+		decodeReq := &lnrpc.PayReqString{PayReq: req.PaymentRequest,User_Id:ctx.GlobalString("User_Id"),}
 		decodeResp, err := client.DecodePayReq(
 			context.Background(), decodeReq,
 		)
@@ -442,6 +443,7 @@ func trackPayment(ctx *cli.Context) error {
 
 	req := &routerrpc.TrackPaymentRequest{
 		PaymentHash: hash,
+		User_Id:ctx.GlobalString("User_Id"),//vyomesh,
 	}
 
 	stream, err := client.TrackPayment(context.Background(), req)
@@ -495,7 +497,7 @@ func payInvoice(ctx *cli.Context) error {
 		PaymentRequest:    payReq,
 		Amt:               ctx.Int64("amt"),
 		DestCustomRecords: make(map[uint64][]byte),
-		User_Id: UniqueId,
+		User_Id:ctx.GlobalString("User_Id"),//vyomesh,
 	}
 
 	return sendPaymentRequest(ctx, req)

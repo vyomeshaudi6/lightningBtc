@@ -27,6 +27,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -44,6 +52,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -124,6 +140,12 @@
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -191,6 +213,12 @@
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -210,6 +238,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -304,6 +340,12 @@
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -365,6 +407,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -384,6 +432,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -509,6 +565,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -555,6 +617,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -589,6 +659,12 @@
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -608,6 +684,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -633,6 +717,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -660,6 +750,12 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -679,6 +775,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -711,6 +815,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -745,6 +855,12 @@
               ]
             },
             "collectionFormat": "multi"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -900,6 +1016,12 @@
               ]
             },
             "collectionFormat": "multi"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -962,6 +1084,12 @@
             "required": false,
             "type": "string",
             "format": "byte"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1013,6 +1141,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1073,6 +1207,12 @@
             "required": false,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1133,6 +1273,12 @@
               "UNUSED_NESTED_PUBKEY_HASH"
             ],
             "default": "WITNESS_PUBKEY_HASH"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1184,6 +1330,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1201,6 +1353,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -1224,6 +1384,12 @@
             "description": "/ The payment request string to be decoded",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -1252,6 +1418,12 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1302,6 +1474,12 @@
             "description": "/ The pubkey of the node to disconnect from",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -1377,6 +1555,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Lightning"
         ]
@@ -1427,6 +1613,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1489,6 +1681,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "User_Id",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1855,6 +2053,9 @@
             "$ref": "#/definitions/lnrpcMacaroonPermission"
           },
           "description": "/ The list of permissions the new macaroon should grant."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1890,6 +2091,9 @@
         "multi_chan_backup": {
           "$ref": "#/definitions/lnrpcMultiChanBackup",
           "description": "*\nA multi-channel backup that covers all open channels currently known to\nlnd."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -1938,6 +2142,9 @@
           "type": "string",
           "format": "byte",
           "description": "*\nnew_password should be the new passphrase that will be needed to unlock the\ndaemon. When using REST, this field must be encoded as base64."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -2153,6 +2360,9 @@
           "type": "integer",
           "format": "int64",
           "description": "/ A bit-field which the initiator uses to specify proposed channel\n/ behavior."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -2557,6 +2767,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "* If set, the daemon will attempt to persistently connect to the target\npeer. Otherwise, the call will be synchronous."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -2823,6 +3036,9 @@
           "type": "integer",
           "format": "int64",
           "description": "/ The max number of events to return in the response to this query."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -3004,6 +3220,9 @@
             "$ref": "#/definitions/lnrpcFeature"
           },
           "description": "Features that our node has advertised in our init message, node\nannouncements and invoices."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -3190,6 +3409,9 @@
         "channel_backups": {
           "$ref": "#/definitions/lnrpcChanBackupSnapshot",
           "description": "*\nchannel_backups is an optional argument that allows clients to recover the\nsettled funds within a set of channels. This should be populated if the\nuser was unable to close out all channels and sweep funds before partial or\ntotal data loss occurred. If specified, then after on-chain recovery of\nfunds, lnd begin to carry out the data loss recovery protocol in order to\nrecover the funds in each channel from a remote force closed transaction."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -3332,6 +3554,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "*\nIndicates if this invoice was a spontaneous payment that arrived via keysend\n[EXPERIMENTAL]."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -3819,6 +4044,9 @@
         "funding_shim": {
           "$ref": "#/definitions/lnrpcFundingShim",
           "description": "*\nFunding shims are an optional argument that allow the caller to intercept\ncertain funding functionality. For example, a shim can be provided to use a\nparticular key for the commitment key (ideally cold) rather than use one\nthat is generated by the wallet as normal, or signal that signing will be\ncarried out in an interactive manner (PSBT based)."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -3916,6 +4144,9 @@
           "additionalProperties": {
             "$ref": "#/definitions/lnrpcFeature"
           }
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4198,6 +4429,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "/ If true, min_htlc_msat is applied."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4269,6 +4503,9 @@
           "type": "string",
           "format": "byte",
           "description": "*\nThe channels to restore in the packed multi backup format. When using\nREST, this field must be encoded as base64."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4381,6 +4618,9 @@
           "type": "boolean",
           "format": "boolean",
           "description": "*\nIf set, then the amount field will be ignored, and lnd will attempt to\nsend all the coins under control of the internal wallet to the specified\naddress."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4480,6 +4720,9 @@
             "$ref": "#/definitions/lnrpcFeatureBit"
           },
           "description": "*\nFeatures assumed to be supported by the final node. All transitive feature\ndependencies must also be set properly. For a given feature bit pair, either\noptional or remote may be set, but not both. If this field is nil or empty,\nthe router will try to load destination features from the graph as a\nfallback."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4517,6 +4760,9 @@
         "route": {
           "$ref": "#/definitions/lnrpcRoute",
           "description": "/ Route that should be used to attempt to complete the payment."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4527,6 +4773,9 @@
           "type": "string",
           "format": "byte",
           "description": "*\nThe message to be signed. When using REST, this field must be encoded as\nbase64."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4633,6 +4882,9 @@
         "channel_backups": {
           "$ref": "#/definitions/lnrpcChanBackupSnapshot",
           "description": "*\nchannel_backups is an optional argument that allows clients to recover the\nsettled funds within a set of channels. This should be populated if the\nuser was unable to close out all channels and sweep funds before partial or\ntotal data loss occurred. If specified, then after on-chain recovery of\nfunds, lnd begin to carry out the data loss recovery protocol in order to\nrecover the funds in each channel from a remote force closed transaction."
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
@@ -4684,6 +4936,9 @@
         "signature": {
           "type": "string",
           "title": "/ The signature to be verified over the given message"
+        },
+        "User_Id": {
+          "type": "string"
         }
       }
     },
