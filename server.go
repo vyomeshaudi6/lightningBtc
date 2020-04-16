@@ -132,8 +132,8 @@ type server struct {
 
 	start sync.Once
 	stop  sync.Once
-// added user id for server instances on multiple port and checking them on time of lightning commands  
-User_Id string
+	// added user id for server instances on multiple port and checking them on time of lightning commands  
+    User_Id string
 	// identityPriv is the private key used to authenticate any incoming
 	// connections.
 	identityPriv *btcec.PrivateKey

@@ -2584,6 +2584,7 @@ func (r *rpcServer) GetInfo(ctx context.Context,
 
 	// TODO(roasbeef): add synced height n stuff
 	return &lnrpc.GetInfoResponse{
+		User_Id:			     in.User_Id,
 		IdentityPubkey:      encodedIDPub,
 		NumPendingChannels:  nPendingChannels,
 		NumActiveChannels:   activeChannels,
@@ -3882,22 +3883,23 @@ func (r *rpcServer) SendPayment(stream lnrpc.Lightning_SendPaymentServer) error 
 	var lock sync.Mutex
   //stream code modify to get user id from stream 
   req, err := stream.Recv()
-            
-  //checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance. 
+   //checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance. 
  for i:=0 ; i < len(RpcserverInstances) ; i++ {
-  if(req.User_Id == RpcserverInstances[i].server.User_Id) {
+	if(req.User_Id == RpcserverInstances[i].server.User_Id) {
+	 fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t",i)
 	 r = RpcserverInstances[i]
-   break
-  }        
- }
+	 break
+	}        
+   }
 
- // code added to check user id from lncli cmd and from server instance so as to pass data only if userid 
- //matched with the right port and id on server insatnce since each port has its own  seprate server instance  
-if(req.User_Id != r.server.User_Id){
-  return errors.New("Either wallet is not created with the id or please unlock the wallet first ")
- }
-
-	return r.sendPayment(&paymentStream{
+   // code added to check user id from lncli cmd and from server instance so as to pass data only if userid 
+   //matched with the right port and id on server insatnce since each port has its own  seprate server instance  
+   if(req.User_Id != r.server.User_Id){
+	  return fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ",req.User_Id)
+   }         
+  //checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance. 
+ 
+  return r.sendPayment(&paymentStream{
 		recv: func() (*rpcPaymentRequest, error) {
 			//req, err := stream.Recv()
 			if err != nil {
@@ -3926,23 +3928,23 @@ func (r *rpcServer) SendToRoute(stream lnrpc.Lightning_SendToRouteServer) error 
 	var lock sync.Mutex
       //vyomesh stream code modify to get user id from stream 
 	  req, err := stream.Recv()
-            
-	  //checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance. 
-	 for i:=0 ; i < len(RpcserverInstances) ; i++ {
-	  if(req.User_Id == RpcserverInstances[i].server.User_Id) {
-		 r = RpcserverInstances[i]
-	   break
-	  }        
-	 }
+      //checking if userid matched in rpcserverslice and userid request came from client , then returning the data according to the correct rpc server instance. 
+ for i:=0 ; i < len(RpcserverInstances) ; i++ {
+	if(req.User_Id == RpcserverInstances[i].server.User_Id) {
+	 fmt.Sprintf("rpc server instance found in slice and id passed matched serverindex : %t",i)
+	 r = RpcserverInstances[i]
+	 break
+	}        
+   }
 
-	 // code added to check user id from lncli cmd and from server instance so as to pass data only if userid 
-	 //matched with the right port and id on server insatnce since each port has its own  seprate server instance  
-	if(req.User_Id != r.server.User_Id){
-	  return errors.New("Either wallet is not created with the id or please unlock the wallet first ")
-	 }
+   // code added to check user id from lncli cmd and from server instance so as to pass data only if userid 
+   //matched with the right port and id on server insatnce since each port has its own  seprate server instance  
+   if(req.User_Id != r.server.User_Id){
+	  return fmt.Errorf("Either wallet is not created with the id %s or please unlock the wallet first ",req.User_Id)
+   }                
 	return r.sendPayment(&paymentStream{
 		recv: func() (*rpcPaymentRequest, error) {
-			req, err = stream.Recv()
+			//req, err = stream.Recv()
 			if err != nil {
 				return nil, err
 			}
@@ -4070,7 +4072,8 @@ func (r *rpcServer) extractPaymentIntent(rpcPayReq *rpcPaymentRequest) (rpcPayme
 		}
 
 		if dest == r.selfNode {
-			return errors.New("self-payments not allowed")
+			
+			return fmt.Errorf("self-payments not allowed destination%t,%t",dest,r.selfNode )
 		}
 
 		return nil

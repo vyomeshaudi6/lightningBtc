@@ -122,6 +122,7 @@ func bakeMacaroon(ctx *cli.Context) error {
 	// RPC call.
 	req := &lnrpc.BakeMacaroonRequest{
 		Permissions: parsedPermissions,
+		User_Id: UniqueId,
 	}
 	resp, err := client.BakeMacaroon(context.Background(), req)
 	if err != nil {

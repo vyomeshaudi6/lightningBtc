@@ -74,6 +74,7 @@ func settleInvoice(ctx *cli.Context) error {
 
 	invoice := &invoicesrpc.SettleInvoiceMsg{
 		Preimage: preimage,
+		
 	}
 
 	resp, err := client.SettleInvoice(context.Background(), invoice)
@@ -127,6 +128,7 @@ func cancelInvoice(ctx *cli.Context) error {
 
 	invoice := &invoicesrpc.CancelInvoiceMsg{
 		PaymentHash: paymentHash,
+		
 	}
 
 	resp, err := client.CancelInvoice(context.Background(), invoice)
@@ -243,6 +245,7 @@ func addHoldInvoice(ctx *cli.Context) error {
 		FallbackAddr:    ctx.String("fallback_addr"),
 		Expiry:          ctx.Int64("expiry"),
 		Private:         ctx.Bool("private"),
+		
 	}
 
 	resp, err := client.AddHoldInvoice(context.Background(), invoice)

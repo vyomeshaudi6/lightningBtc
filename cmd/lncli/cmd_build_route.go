@@ -78,6 +78,7 @@ func buildRoute(ctx *cli.Context) error {
 		FinalCltvDelta: int32(ctx.Int64("final_cltv_delta")),
 		HopPubkeys:     rpcHops,
 		OutgoingChanId: ctx.Uint64("outgoing_chan_id"),
+		
 	}
 
 	rpcCtx := context.Background()

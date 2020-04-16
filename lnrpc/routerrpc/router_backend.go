@@ -701,12 +701,12 @@ func (r *RouterBackend) extractIntentFromSendRequest(
 			r.MaxPaymentMSat)
 
 	}
-
+/*
 	// Check for disallowed payments to self.
 	if !rpcPayReq.AllowSelfPayment && payIntent.Target == r.SelfNode {
 		return nil, errors.New("self-payments not allowed")
 	}
-
+*/
 	return payIntent, nil
 }
 

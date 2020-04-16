@@ -187,6 +187,7 @@ func openChannel(ctx *cli.Context) error {
 		MinConfs:         minConfs,
 		SpendUnconfirmed: minConfs == 0,
 		CloseAddress:     ctx.String("close_address"),
+		User_Id: UniqueId,
 	}
 
 	switch {
@@ -220,6 +221,7 @@ func openChannel(ctx *cli.Context) error {
 		req := &lnrpc.ConnectPeerRequest{
 			Addr: addr,
 			Perm: false,
+			User_Id: UniqueId,
 		}
 
 		// Check if connecting to the node was successful.

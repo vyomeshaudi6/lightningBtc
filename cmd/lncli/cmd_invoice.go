@@ -115,6 +115,7 @@ func addInvoice(ctx *cli.Context) error {
 		FallbackAddr:    ctx.String("fallback_addr"),
 		Expiry:          ctx.Int64("expiry"),
 		Private:         ctx.Bool("private"),
+		User_Id: UniqueId,
 	}
 
 	resp, err := client.AddInvoice(context.Background(), invoice)
@@ -166,6 +167,7 @@ func lookupInvoice(ctx *cli.Context) error {
 
 	req := &lnrpc.PaymentHash{
 		RHash: rHash,
+		User_Id: UniqueId,
 	}
 
 	invoice, err := client.LookupInvoice(context.Background(), req)
@@ -233,6 +235,7 @@ func listInvoices(ctx *cli.Context) error {
 		IndexOffset:    ctx.Uint64("index_offset"),
 		NumMaxInvoices: ctx.Uint64("max_invoices"),
 		Reversed:       !ctx.Bool("paginate-forwards"),
+		User_Id: UniqueId,
 	}
 
 	invoices, err := client.ListInvoices(context.Background(), req)
@@ -278,6 +281,7 @@ func decodePayReq(ctx *cli.Context) error {
 
 	resp, err := client.DecodePayReq(ctxb, &lnrpc.PayReqString{
 		PayReq: payreq,
+		User_Id: UniqueId,
 	})
 	if err != nil {
 		return err

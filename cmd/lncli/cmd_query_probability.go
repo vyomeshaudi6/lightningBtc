@@ -55,6 +55,7 @@ func queryProb(ctx *cli.Context) error {
 		FromNode: fromNode[:],
 		ToNode:   toNode[:],
 		AmtMsat:  int64(amtMsat),
+		
 	}
 	rpcCtx := context.Background()
 	response, err := client.QueryProbability(rpcCtx, req)

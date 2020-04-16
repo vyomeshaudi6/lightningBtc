@@ -164,6 +164,7 @@ func bumpFee(ctx *cli.Context) error {
 		TargetConf: uint32(ctx.Uint64("conf_target")),
 		SatPerByte: uint32(ctx.Uint64("sat_per_byte")),
 		Force:      ctx.Bool("force"),
+		
 	})
 	if err != nil {
 		return err
@@ -270,6 +271,7 @@ func bumpCloseFee(ctx *cli.Context) error {
 			TargetConf: uint32(ctx.Uint64("conf_target")),
 			SatPerByte: uint32(ctx.Uint64("sat_per_byte")),
 			Force:      true,
+			
 		})
 		if err != nil {
 			return err
@@ -285,7 +287,7 @@ func getWaitingCloseCommitments(client lnrpc.LightningClient,
 
 	ctxb := context.Background()
 
-	req := &lnrpc.PendingChannelsRequest{}
+	req := &lnrpc.PendingChannelsRequest{User_Id: UniqueId,}
 	resp, err := client.PendingChannels(ctxb, req)
 	if err != nil {
 		return nil, err

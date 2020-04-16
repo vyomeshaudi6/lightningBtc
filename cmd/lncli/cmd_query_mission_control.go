@@ -21,7 +21,9 @@ func queryMissionControl(ctx *cli.Context) error {
 
 	client := routerrpc.NewRouterClient(conn)
 
-	req := &routerrpc.QueryMissionControlRequest{}
+	req := &routerrpc.QueryMissionControlRequest{
+		
+	}
 	rpcCtx := context.Background()
 	snapshot, err := client.QueryMissionControl(rpcCtx, req)
 	if err != nil {
