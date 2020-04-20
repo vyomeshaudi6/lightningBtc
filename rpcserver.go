@@ -532,7 +532,7 @@ func newRPCServer(s *server, macService *macaroons.Service,
 	atpl *autopilot.Manager, invoiceRegistry *invoices.InvoiceRegistry,
 	tower *watchtower.Standalone, tlsCfg *tls.Config,
 	getListeners rpcListeners,
-	chanPredicate *chanacceptor.ChainedAcceptor) (*rpcServer, error) {
+	chanPredicate *chanacceptor.ChainedAcceptor,UserId string) (*rpcServer, error) {
 
 	// Set up router rpc backend.
 	channelGraph := s.chanDB.ChannelGraph()
@@ -603,7 +603,7 @@ func newRPCServer(s *server, macService *macaroons.Service,
 	// can create each sub-server!
 	registeredSubServers := lnrpc.RegisteredSubServers()
 	for _, subServer := range registeredSubServers {
-		subServerInstance, macPerms, err := subServer.New(subServerCgs)
+		subServerInstance, macPerms, err := subServer.New(subServerCgs,UserId)
 		if err != nil {
 			return nil, err
 		}
@@ -613,6 +613,9 @@ func newRPCServer(s *server, macService *macaroons.Service,
 		// interceptors below.
 		subServers = append(subServers, subServerInstance)
 		subServerPerms = append(subServerPerms, macPerms)
+
+		// storing subserverindtances of particular subserver for all nodes vyomresh
+		routerrpc.Subserverpointers = append(routerrpc.Subserverpointers,subServerInstance)
 	}
 
 	// Next, we need to merge the set of sub server macaroon permissions

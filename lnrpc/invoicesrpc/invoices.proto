@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "google/api/annotations.proto";
+//import "google/api/annotations.proto";
 import "rpc.proto";
 
 package invoicesrpc;
@@ -41,6 +41,7 @@ service Invoices {
 message CancelInvoiceMsg {
     /// Hash corresponding to the (hold) invoice to cancel.
     bytes payment_hash = 1;
+     string User_Id = 2;
 }
 message CancelInvoiceResp {
 }
@@ -95,6 +96,7 @@ message AddHoldInvoiceRequest {
 
     /// Whether this invoice should include routing hints for private channels.
     bool private = 9;
+     string User_Id = 11;
 }
 
 message AddHoldInvoiceResp {
@@ -110,6 +112,7 @@ message SettleInvoiceMsg {
     /// Externally discovered pre-image that should be used to settle the hold
     /// invoice.
     bytes preimage = 1;
+     string User_Id = 2;
 }
 
 message SettleInvoiceResp {
@@ -120,4 +123,5 @@ message SubscribeSingleInvoiceRequest {
 
     /// Hash corresponding to the (hold) invoice to subscribe to.
     bytes r_hash = 2;
+     string User_Id = 3;
 }

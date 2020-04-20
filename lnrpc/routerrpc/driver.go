@@ -5,12 +5,15 @@ import (
 
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
-
+var (
+			//subserver instance code edit
+			Subserverpointers []*Server
+)
 // createNewSubServer is a helper method that will create the new router sub
 // server given the main config dispatcher method. If we're unable to find the
 // config that is meant for us in the config dispatcher, then we'll exit with
 // an error.
-func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher) (
+func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher,UserId string) (
 	lnrpc.SubServer, lnrpc.MacaroonPerms, error) {
 
 	// We'll attempt to look up the config that we expect, according to our
@@ -40,14 +43,14 @@ func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher) (
 			"Routerpc")
 	}
 
-	return New(config)
+	return New(config,UserId)
 }
 
 func init() {
 	subServer := &lnrpc.SubServerDriver{
 		SubServerName: subServerName,
-		New: func(c lnrpc.SubServerConfigDispatcher) (lnrpc.SubServer, lnrpc.MacaroonPerms, error) {
-			return createNewSubServer(c)
+		New: func(c lnrpc.SubServerConfigDispatcher,UserId string) (lnrpc.SubServer, lnrpc.MacaroonPerms, error) {
+			return createNewSubServer(c,UserId)
 		},
 	}
 

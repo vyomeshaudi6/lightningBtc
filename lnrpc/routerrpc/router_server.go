@@ -16,11 +16,11 @@ import (
 	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/routing"
 	"github.com/lightningnetwork/lnd/routing/route"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gopkg.in/macaroon-bakery.v2/bakery"
+	
 )
 
 const (
@@ -32,6 +32,7 @@ const (
 
 var (
 	errServerShuttingDown = errors.New("routerrpc server shutting down")
+ 
 
 	// macaroonOps are the set of capabilities that our minted macaroon (if
 	// it doesn't already exist) will have.
@@ -90,6 +91,7 @@ var (
 	// that we expect to find via a file handle within the main
 	// configuration file in this package.
 	DefaultRouterMacFilename = "router.macaroon"
+
 )
 
 // Server is a stand alone sub RPC server which exposes functionality that
@@ -97,7 +99,7 @@ var (
 type Server struct {
 	started  int32 // To be used atomically.
 	shutdown int32 // To be used atomically.
-
+    User_Id string
 	cfg *Config
 
 	quit chan struct{}
@@ -122,7 +124,7 @@ func fileExists(name string) bool {
 // we're unable to create it, then an error will be returned. We also return
 // the set of permissions that we require as a server. At the time of writing
 // of this documentation, this is the same macaroon as as the admin macaroon.
-func New(cfg *Config) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg *Config,UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the router macaroon wasn't generated, then we'll
 	// assume that it's found at the default network directory.
 	if cfg.RouterMacPath == "" {
@@ -162,6 +164,7 @@ func New(cfg *Config) (*Server, lnrpc.MacaroonPerms, error) {
 	routerServer := &Server{
 		cfg:  cfg,
 		quit: make(chan struct{}),
+		User_Id: UserId,//code edit
 	}
 
 	return routerServer, macPermissions, nil
@@ -222,6 +225,16 @@ func (s *Server) RegisterWithRootServer(grpcServer *grpc.Server) error {
 func (s *Server) SendPayment(req *SendPaymentRequest,
 	stream Router_SendPaymentServer) error {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+   for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	payment, err := s.cfg.RouterBackend.extractIntentFromSendRequest(req)
 	if err != nil {
 		return err
@@ -254,7 +267,14 @@ func (s *Server) SendPayment(req *SendPaymentRequest,
 // may cost to send an HTLC to the target end destination.
 func (s *Server) EstimateRouteFee(ctx context.Context,
 	req *RouteFeeRequest) (*RouteFeeResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	if len(req.Dest) != 33 {
 		return nil, errors.New("invalid length destination key")
 	}
@@ -295,7 +315,14 @@ func (s *Server) EstimateRouteFee(ctx context.Context,
 // call contains structured error information.
 func (s *Server) SendToRoute(ctx context.Context,
 	req *SendToRouteRequest) (*SendToRouteResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	if req.Route == nil {
 		return nil, fmt.Errorf("unable to send, no routes provided")
 	}
@@ -335,7 +362,14 @@ func (s *Server) SendToRoute(ctx context.Context,
 // slate.
 func (s *Server) ResetMissionControl(ctx context.Context,
 	req *ResetMissionControlRequest) (*ResetMissionControlResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	err := s.cfg.RouterBackend.MissionControl.ResetHistory()
 	if err != nil {
 		return nil, err
@@ -348,7 +382,14 @@ func (s *Server) ResetMissionControl(ctx context.Context,
 // is a development feature.
 func (s *Server) QueryMissionControl(ctx context.Context,
 	req *QueryMissionControlRequest) (*QueryMissionControlResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	snapshot := s.cfg.RouterBackend.MissionControl.GetHistorySnapshot()
 
 	rpcPairs := make([]*PairHistory, 0, len(snapshot.Pairs))
@@ -396,7 +437,14 @@ func toRPCPairData(data *routing.TimedPairResult) *PairData {
 // given node pair and amount.
 func (s *Server) QueryProbability(ctx context.Context,
 	req *QueryProbabilityRequest) (*QueryProbabilityResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	fromNode, err := route.NewVertexFromBytes(req.FromNode)
 	if err != nil {
 		return nil, err
@@ -423,7 +471,14 @@ func (s *Server) QueryProbability(ctx context.Context,
 // closed when the payment completes.
 func (s *Server) TrackPayment(request *TrackPaymentRequest,
 	stream Router_TrackPaymentServer) error {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(request.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   } 
 	paymentHash, err := lntypes.MakeHash(request.PaymentHash)
 	if err != nil {
 		return err
@@ -544,7 +599,14 @@ func marshallFailureReason(reason channeldb.FailureReason) (
 // BuildRoute builds a route from a list of hop addresses.
 func (s *Server) BuildRoute(ctx context.Context,
 	req *BuildRouteRequest) (*BuildRouteResponse, error) {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }
 	// Unmarshall hop list.
 	hops := make([]route.Vertex, len(req.HopPubkeys))
 	for i, pubkeyBytes := range req.HopPubkeys {
@@ -591,7 +653,14 @@ func (s *Server) BuildRoute(ctx context.Context,
 // the client which delivers a stream of htlc events.
 func (s *Server) SubscribeHtlcEvents(req *SubscribeHtlcEventsRequest,
 	stream Router_SubscribeHtlcEventsServer) error {
-
+	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }
 	htlcClient, err := s.cfg.RouterBackend.SubscribeHtlcEvents()
 	if err != nil {
 		return err

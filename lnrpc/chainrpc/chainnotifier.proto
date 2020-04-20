@@ -30,6 +30,7 @@ message ConfRequest {
     broadcast height of the transaction/output script.
     */
     uint32 height_hint = 4;
+     string User_Id = 5;
 }
 
 message ConfDetails {
@@ -96,7 +97,7 @@ message SpendRequest {
     the outpoint/output script.
     */
     uint32 height_hint = 3;
-
+ string User_Id = 4;
     // TODO(wilmer): extend to support num confs on spending tx.
 }
 
@@ -139,6 +140,7 @@ message BlockEpoch {
 
     // The height of the block.
     uint32 height = 2;
+     string User_Id = 3;
 }
 
 service ChainNotifier {

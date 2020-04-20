@@ -94,6 +94,7 @@ message SignReq {
 
     /// A set of sign descriptors, for each input to be signed.
     repeated SignDescriptor sign_descs = 2;
+     string User_Id = 3;
 }
 
 message SignResp {
@@ -126,6 +127,7 @@ message SignMessageReq {
 
     /// The key locator that identifies which key to use for signing.
     KeyLocator key_loc = 2;
+     string User_Id = 3;
 }
 message SignMessageResp {
     /**
@@ -146,6 +148,7 @@ message VerifyMessageReq {
 
     /// The public key the signature has to be valid for.
     bytes pubkey = 3;
+     string User_Id = 4;
 }
 message VerifyMessageResp {
     /// Whether the signature was valid over the given message.
@@ -161,6 +164,7 @@ message SharedKeyRequest {
     parameter is not set then the node's identity private key will be used.
     */
     KeyLocator key_loc = 2;
+     string User_Id = 3;
 }
 
 message SharedKeyResponse {

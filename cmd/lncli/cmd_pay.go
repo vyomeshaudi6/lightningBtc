@@ -187,7 +187,7 @@ func sendPayment(ctx *cli.Context) error {
 		req := &routerrpc.SendPaymentRequest{
 			PaymentRequest: ctx.String("pay_req"),
 			Amt:            ctx.Int64("amt"),
-		
+		    User_Id: ctx.GlobalString("User_Id"),//vyomesh
 		}
 
 		return sendPaymentRequest(ctx, req)
@@ -233,7 +233,7 @@ func sendPayment(ctx *cli.Context) error {
 		Dest:              destNode,
 		Amt:               amount,
 		DestCustomRecords: make(map[uint64][]byte),
-		
+		User_Id: ctx.GlobalString("User_Id"),//vyomesh
 
 	}
 

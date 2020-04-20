@@ -14,6 +14,7 @@ service Watchtower {
 }
 
 message GetInfoRequest {
+     string User_Id = 1;
 }
 
 message GetInfoResponse {

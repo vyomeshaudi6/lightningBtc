@@ -94,6 +94,7 @@ var (
 	// macaroon that we expect to find via a file handle within the main
 	// configuration file in this package.
 	DefaultWalletKitMacFilename = "walletkit.macaroon"
+
 )
 
 // WalletKit is a sub-RPC server that exposes a tool kit which allows clients
@@ -101,6 +102,7 @@ var (
 // keys (for contracts!), and publishing transactions.
 type WalletKit struct {
 	cfg *Config
+	User_Id string
 }
 
 // A compile time check to ensure that WalletKit fully implements the
@@ -108,7 +110,7 @@ type WalletKit struct {
 var _ WalletKitServer = (*WalletKit)(nil)
 
 // New creates a new instance of the WalletKit sub-RPC server.
-func New(cfg *Config) (*WalletKit, lnrpc.MacaroonPerms, error) {
+func New(cfg *Config,UserId string) (*WalletKit, lnrpc.MacaroonPerms, error) {
 	// If the path of the wallet kit macaroon wasn't specified, then we'll
 	// assume that it's found at the default network directory.
 	if cfg.WalletKitMacPath == "" {
@@ -196,6 +198,16 @@ func (w *WalletKit) RegisterWithRootServer(grpcServer *grpc.Server) error {
 func (w *WalletKit) DeriveNextKey(ctx context.Context,
 	req *KeyReq) (*signrpc.KeyDescriptor, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	nextKeyDesc, err := w.cfg.KeyRing.DeriveNextKey(
 		keychain.KeyFamily(req.KeyFamily),
 	)
@@ -217,6 +229,16 @@ func (w *WalletKit) DeriveNextKey(ctx context.Context,
 func (w *WalletKit) DeriveKey(ctx context.Context,
 	req *signrpc.KeyLocator) (*signrpc.KeyDescriptor, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	keyDesc, err := w.cfg.KeyRing.DeriveKey(keychain.KeyLocator{
 		Family: keychain.KeyFamily(req.KeyFamily),
 		Index:  uint32(req.KeyIndex),
@@ -238,6 +260,16 @@ func (w *WalletKit) DeriveKey(ctx context.Context,
 func (w *WalletKit) NextAddr(ctx context.Context,
 	req *AddrRequest) (*AddrResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	addr, err := w.cfg.Wallet.NewAddress(lnwallet.WitnessPubKey, false)
 	if err != nil {
 		return nil, err
@@ -254,6 +286,16 @@ func (w *WalletKit) NextAddr(ctx context.Context,
 func (w *WalletKit) PublishTransaction(ctx context.Context,
 	req *Transaction) (*PublishResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// publish.
@@ -282,6 +324,16 @@ func (w *WalletKit) PublishTransaction(ctx context.Context,
 func (w *WalletKit) SendOutputs(ctx context.Context,
 	req *SendOutputsRequest) (*SendOutputsResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	switch {
 	// If the client didn't specify any outputs to create, then  we can't
 	// proceed .
@@ -326,6 +378,16 @@ func (w *WalletKit) SendOutputs(ctx context.Context,
 func (w *WalletKit) EstimateFee(ctx context.Context,
 	req *EstimateFeeRequest) (*EstimateFeeResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	switch {
 	// A confirmation target of zero doesn't make any sense. Similarly, we
 	// reject confirmation targets of 1 as they're unreasonable.
@@ -354,6 +416,16 @@ func (w *WalletKit) EstimateFee(ctx context.Context,
 func (w *WalletKit) PendingSweeps(ctx context.Context,
 	in *PendingSweepsRequest) (*PendingSweepsResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(in.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	// Retrieve all of the outputs the UtxoSweeper is currently trying to
 	// sweep.
 	pendingInputs, err := w.cfg.Sweeper.PendingInputs()
@@ -470,6 +542,16 @@ func unmarshallOutPoint(op *lnrpc.OutPoint) (*wire.OutPoint, error) {
 func (w *WalletKit) BumpFee(ctx context.Context,
 	in *BumpFeeRequest) (*BumpFeeResponse, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(in.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	// Parse the outpoint from the request.
 	op, err := unmarshallOutPoint(in.Outpoint)
 	if err != nil {

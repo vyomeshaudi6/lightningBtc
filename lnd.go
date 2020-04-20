@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	
 
 	// Blank import to set up profiling HTTP handlers.
 	_ "net/http/pprof"
@@ -49,6 +50,7 @@ import (
 	"github.com/lightningnetwork/lnd/walletunlocker"
 	"github.com/lightningnetwork/lnd/watchtower"
 	"github.com/lightningnetwork/lnd/watchtower/wtdb"
+	
 )
 
 var (
@@ -61,8 +63,9 @@ var (
 	networkDir string
 	graphDir   string
 	RpcserverInstances []*rpcServer
-	UserId             string // added userid for multiple server instances and passed to new server func
-	
+	//byte_array []byte       
+	UserId     string // added userid for multiple server instances and passed to new server func
+	//byte_buf bytes.Buffer
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -172,6 +175,9 @@ func Main(lisCfg ListenerCfg) error {
 			ltndLog.Errorf("Could not close log rotator: %v", err)
 		}
 	}()
+	//vyomesh  rpcserveeinstance byte conversion 
+	//enc := gob.NewEncoder(&byte_buf) 
+
 	//sql database connection
 /*	conn, err := sqlite3.Open("/Users/vyomesh/Library/Application Support/Lnd/opochdb.sqlite3")
 	if err != nil {
@@ -734,7 +740,7 @@ func Main(lisCfg ListenerCfg) error {
 	rpcServer, err := newRPCServer(
 		server, macaroonService, cfg.SubRPCServers, serverOpts,
 		restDialOpts, restProxyDest, atplManager, server.invoices,
-		tower, tlsCfg, rpcListeners, chainedAcceptor,
+		tower, tlsCfg, rpcListeners, chainedAcceptor,UserId,
 	)
 	//code edit storing instances of rpcserve in slice
 	RpcserverInstances = append(RpcserverInstances, rpcServer)
@@ -742,7 +748,31 @@ func Main(lisCfg ListenerCfg) error {
 		err := fmt.Errorf("Unable to create RPC server: %v", err)
 		ltndLog.Error(err)
 		return err
+	} 
+/*	// saving rpc instances to a file 
+	rpcInstancesPath := filepath.Join("test_data_PrvW",
+	defaultGraphSubDirname,
+	normalizeNetwork(activeNetParams.Name), "rpcserverinstances.txt")
+
+	//enc := gob.NewEncoder(&byte_buf) 
+	for i:=0 ; i < len(RpcserverInstances) ; i++ {
+		r := RpcserverInstances[i]
+		err := enc.Encode(r)
+	if err != nil {
+        ltndLog.Error(err)
+      }
+	  byte_array = byte_buf.Bytes()       
+   
+   if i== 1 {
+	err = ioutil.WriteFile(rpcInstancesPath, byte_array, 0644)
+    if err != nil {
+		err := fmt.Errorf("error on rpcserverinstance write : ", err)
+		ltndLog.Error(err)
+		return err
 	}
+}
+}
+*/
 	if err := rpcServer.Start(); err != nil {
 		err := fmt.Errorf("Unable to start RPC server: %v", err)
 		ltndLog.Error(err)

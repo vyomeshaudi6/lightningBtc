@@ -62,6 +62,7 @@ var (
 	// macaroon that we expect to find via a file handle within the main
 	// configuration file in this package.
 	DefaultInvoicesMacFilename = "invoices.macaroon"
+
 )
 
 // Server is a sub-server of the main RPC server: the invoices RPC. This sub
@@ -69,7 +70,7 @@ var (
 // currently active within lnd, as well as configuring it at runtime.
 type Server struct {
 	quit chan struct{}
-
+	User_Id string
 	cfg *Config
 }
 
@@ -77,12 +78,13 @@ type Server struct {
 // InvoicesServer gRPC service.
 var _ InvoicesServer = (*Server)(nil)
 
+
 // New returns a new instance of the invoicesrpc Invoices sub-server. We also
 // return the set of permissions for the macaroons that we may create within
 // this method. If the macaroons we need aren't found in the filepath, then
 // we'll create them on start up. If we're unable to locate, or create the
 // macaroons we need, then we'll return with an error.
-func New(cfg *Config) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg *Config,UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the invoices macaroon wasn't specified, then we'll
 	// assume that it's found at the default network directory.
 	macFilePath := filepath.Join(
@@ -119,6 +121,7 @@ func New(cfg *Config) (*Server, lnrpc.MacaroonPerms, error) {
 	server := &Server{
 		cfg:  cfg,
 		quit: make(chan struct{}, 1),
+		User_Id: UserId,//code edit
 	}
 
 	return server, macPermissions, nil
@@ -169,6 +172,16 @@ func (s *Server) RegisterWithRootServer(grpcServer *grpc.Server) error {
 func (s *Server) SubscribeSingleInvoice(req *SubscribeSingleInvoiceRequest,
 	updateStream Invoices_SubscribeSingleInvoiceServer) error {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(req.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	hash, err := lntypes.MakeHash(req.RHash)
 	if err != nil {
 		return err
@@ -205,6 +218,16 @@ func (s *Server) SubscribeSingleInvoice(req *SubscribeSingleInvoiceRequest,
 func (s *Server) SettleInvoice(ctx context.Context,
 	in *SettleInvoiceMsg) (*SettleInvoiceResp, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(in.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	preimage, err := lntypes.MakePreimage(in.Preimage)
 	if err != nil {
 		return nil, err
@@ -224,6 +247,16 @@ func (s *Server) SettleInvoice(ctx context.Context,
 func (s *Server) CancelInvoice(ctx context.Context,
 	in *CancelInvoiceMsg) (*CancelInvoiceResp, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(in.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	paymentHash, err := lntypes.MakeHash(in.PaymentHash)
 	if err != nil {
 		return nil, err
@@ -245,6 +278,16 @@ func (s *Server) CancelInvoice(ctx context.Context,
 func (s *Server) AddHoldInvoice(ctx context.Context,
 	invoice *AddHoldInvoiceRequest) (*AddHoldInvoiceResp, error) {
 
+ 	//vyomesh code edit
+// for finding which sub server instance with userid hit the command 
+for i:=0 ; i < len(Subserverpointers) ; i++ {
+	if(invoice.User_Id == Subserverpointers[i].User_Id) {
+		s = Subserverpointers[i]
+	 break
+	}
+   }        
+
+ 
 	addInvoiceCfg := &AddInvoiceConfig{
 		AddInvoice:         s.cfg.InvoiceRegistry.AddInvoice,
 		IsChannelActive:    s.cfg.IsChannelActive,
