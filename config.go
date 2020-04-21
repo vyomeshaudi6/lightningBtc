@@ -302,7 +302,7 @@ type config struct {
 
 	Tor *torConfig `group:"Tor" namespace:"tor"`
 
-	SubRPCServers *subRPCServerConfigs `group:"subrpc"`
+	SubRPCServers subRPCServerConfigs `group:"subrpc"`
 
 	Hodl *hodl.Config `group:"hodl" namespace:"hodl"`
 
@@ -418,10 +418,11 @@ func loadConfig() (*config, error) {
 		NoSeedBackup:       defaultNoSeedBackup,
 		MinBackoff:         defaultMinBackoff,
 		MaxBackoff:         defaultMaxBackoff,
-		SubRPCServers: &subRPCServerConfigs{
+		SubRPCServers: subRPCServerConfigs{
 			SignRPC:   &signrpc.Config{},
 			RouterRPC: routerrpc.DefaultConfig(),
 		},
+
 		Autopilot: &autoPilotConfig{
 			MaxChannels:    5,
 			Allocation:     0.6,
@@ -1501,3 +1502,13 @@ func normalizeNetwork(network string) string {
 
 	return network
 }
+
+/*
+func (cfg *config) subserverconfigmodify() error {
+	cfg.SubRPCServers = &subRPCServerConfigs{
+		SignRPC:   &signrpc.Config{},
+		RouterRPC: routerrpc.DefaultConfig(),
+	}
+	return errors.New("something happend in subserverconfigmodify function")
+}
+*/

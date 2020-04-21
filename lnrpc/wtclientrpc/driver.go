@@ -6,15 +6,17 @@ import (
 
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
+
 var (
 	//subserver instance code edit
 	Subserverpointers []*WatchtowerClient
 )
+
 // createNewSubServer is a helper method that will create the new sub server
 // given the main config dispatcher method. If we're unable to find the config
 // that is meant for us in the config dispatcher, then we'll exit with an
 // error.
-func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher,UserId string) (
+func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher, UserId string) (
 	lnrpc.SubServer, lnrpc.MacaroonPerms, error) {
 
 	// We'll attempt to look up the config that we expect, according to our
@@ -43,15 +45,18 @@ func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher,UserId st
 		return nil, nil, errors.New("a lncfg.TCPResolver is required")
 	}
 
-	return New(config,UserId)
+	//vyomesh code edit storing sub server
+	subserver, mac, err := New(*config, UserId)
+	Subserverpointers = append(Subserverpointers, subserver)
+	return subserver, mac, err
 }
 
 func init() {
 	subServer := &lnrpc.SubServerDriver{
 		SubServerName: subServerName,
-		New: func(c lnrpc.SubServerConfigDispatcher,UserId string) (lnrpc.SubServer,
+		New: func(c lnrpc.SubServerConfigDispatcher, UserId string) (lnrpc.SubServer,
 			lnrpc.MacaroonPerms, error) {
-			return createNewSubServer(c,UserId)
+			return createNewSubServer(c, UserId)
 		},
 	}
 

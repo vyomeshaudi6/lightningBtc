@@ -37,7 +37,8 @@ var (
 // Handler is the RPC server we'll use to interact with the backing active
 // watchtower.
 type Handler struct {
-	cfg Config
+	cfg     Config
+	User_Id string
 }
 
 // A compile time check to ensure that Handler fully implements the Handler gRPC
@@ -49,8 +50,8 @@ var _ WatchtowerServer = (*Handler)(nil)
 // If the macaroons we need aren't found in the filepath, then we'll create them
 // on start up. If we're unable to locate, or create the macaroons we need, then
 // we'll return with an error.
-func New(cfg *Config) (*Handler, lnrpc.MacaroonPerms, error) {
-	return &Handler{*cfg}, macPermissions, nil
+func New(cfg Config, UserId string) (*Handler, lnrpc.MacaroonPerms, error) {
+	return &Handler{*cfg, UserId}, macPermissions, nil
 }
 
 // Start launches any helper goroutines required for the Handler to function.
@@ -97,7 +98,14 @@ func (c *Handler) RegisterWithRootServer(grpcServer *grpc.Server) error {
 // backups.
 func (c *Handler) GetInfo(ctx context.Context,
 	req *GetInfoRequest) (*GetInfoResponse, error) {
-
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if req.User_Id == Subserverpointers[i].User_Id {
+			c = Subserverpointers[i]
+			break
+		}
+	}
 	if err := c.isActive(); err != nil {
 		return nil, err
 	}

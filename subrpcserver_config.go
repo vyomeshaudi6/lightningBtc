@@ -80,14 +80,14 @@ type subRPCServerConfigs struct {
 //
 // NOTE: This MUST be called before any callers are permitted to execute the
 // FetchConfig method.
-func (s *subRPCServerConfigs) PopulateDependencies(cc *chainControl,
+func (s subRPCServerConfigs) PopulateDependencies(cc *chainControl,
 	networkDir string, macService *macaroons.Service,
 	atpl *autopilot.Manager,
 	invoiceRegistry *invoices.InvoiceRegistry,
 	htlcSwitch *htlcswitch.Switch,
 	activeNetParams *chaincfg.Params,
 	chanRouter *routing.ChannelRouter,
-	routerBackend *routerrpc.RouterBackend,
+	routerBackend routerrpc.RouterBackend,
 	nodeSigner *netann.NodeSigner,
 	chanDB *channeldb.DB,
 	sweeper *sweep.UtxoSweeper,
@@ -268,7 +268,7 @@ func (s *subRPCServerConfigs) PopulateDependencies(cc *chainControl,
 // subServerName name, then false will be returned for the second parameter.
 //
 // NOTE: Part of the lnrpc.SubServerConfigDispatcher interface.
-func (s *subRPCServerConfigs) FetchConfig(subServerName string) (interface{}, bool) {
+func (s subRPCServerConfigs) FetchConfig(subServerName string) (interface{}, bool) {
 	// First, we'll use reflect to obtain a version of the config struct
 	// that allows us to programmatically inspect its fields.
 	selfVal := extractReflectValue(s)

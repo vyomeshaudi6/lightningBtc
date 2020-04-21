@@ -73,6 +73,7 @@ type RouterBackend struct {
 	// SubscribeHtlcEvents returns a subscription client for the node's
 	// htlc events.
 	SubscribeHtlcEvents func() (*subscribe.Client, error)
+	User_Id             string
 }
 
 // MissionControl defines the mission control dependencies of routerrpc.
@@ -701,12 +702,12 @@ func (r *RouterBackend) extractIntentFromSendRequest(
 			r.MaxPaymentMSat)
 
 	}
-/*
-	// Check for disallowed payments to self.
-	if !rpcPayReq.AllowSelfPayment && payIntent.Target == r.SelfNode {
-		return nil, errors.New("self-payments not allowed")
-	}
-*/
+	/*
+		// Check for disallowed payments to self.
+		if !rpcPayReq.AllowSelfPayment && payIntent.Target == r.SelfNode {
+			return nil, errors.New("self-payments not allowed")
+		}
+	*/
 	return payIntent, nil
 }
 

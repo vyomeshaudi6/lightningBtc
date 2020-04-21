@@ -73,7 +73,6 @@ var (
 	// that we expect to find via a file handle within the main
 	// configuration file in this package.
 	DefaultSignerMacFilename = "signer.macaroon"
-	
 )
 
 // Server is a sub-server of the main RPC server: the signer RPC. This sub RPC
@@ -81,7 +80,7 @@ var (
 // lnd. This allows callers to create custom protocols, external to lnd, even
 // backed by multiple distinct lnd across independent failure domains.
 type Server struct {
-	cfg *Config
+	cfg     *Config
 	User_Id string
 }
 
@@ -94,7 +93,7 @@ var _ SignerServer = (*Server)(nil)
 // method. If the macaroons we need aren't found in the filepath, then we'll
 // create them on start up. If we're unable to locate, or create the macaroons
 // we need, then we'll return with an error.
-func New(cfg *Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the signer macaroon wasn't generated, then we'll
 	// assume that it's found at the default network directory.
 	if cfg.SignerMacPath == "" {
@@ -132,8 +131,8 @@ func New(cfg *Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	}
 
 	signerServer := &Server{
-		cfg: cfg,
-		User_Id: UserId,//code edit
+		cfg:     cfg,
+		User_Id: UserId, //code edit
 	}
 
 	return signerServer, macPermissions, nil
@@ -187,16 +186,15 @@ func (s *Server) RegisterWithRootServer(grpcServer *grpc.Server) error {
 // NOTE: The resulting signature should be void of a sighash byte.
 func (s *Server) SignOutputRaw(ctx context.Context, in *SignReq) (*SignResp, error) {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// sign, so we'll exit early.
@@ -351,16 +349,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) ComputeInputScript(ctx context.Context,
 	in *SignReq) (*InputScriptResp, error) {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	switch {
 	// If the client doesn't specify a transaction, then there's nothing to
 	// sign, so we'll exit early.
@@ -431,16 +428,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) SignMessage(ctx context.Context,
 	in *SignMessageReq) (*SignMessageResp, error) {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	if in.Msg == nil {
 		return nil, fmt.Errorf("a message to sign MUST be passed in")
 	}
@@ -483,16 +479,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) VerifyMessage(ctx context.Context,
 	in *VerifyMessageReq) (*VerifyMessageResp, error) {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	if in.Msg == nil {
 		return nil, fmt.Errorf("a message to verify MUST be passed in")
 	}
@@ -537,16 +532,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) DeriveSharedKey(_ context.Context, in *SharedKeyRequest) (
 	*SharedKeyResponse, error) {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	if len(in.EphemeralPubkey) != 33 {
 		return nil, fmt.Errorf("ephemeral pubkey must be " +
 			"serialized in compressed format")

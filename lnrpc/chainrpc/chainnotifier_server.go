@@ -63,7 +63,6 @@ var (
 	// has been shut down.
 	ErrChainNotifierServerShuttingDown = errors.New("chain notifier RPC " +
 		"subserver shutting down")
-	
 )
 
 // fileExists reports whether the named file or directory exists.
@@ -84,8 +83,8 @@ func fileExists(name string) bool {
 type Server struct {
 	started sync.Once
 	stopped sync.Once
- User_Id string
-	cfg Config
+	User_Id string
+	cfg     Config
 
 	quit chan struct{}
 }
@@ -95,7 +94,7 @@ type Server struct {
 // this method. If the macaroons we need aren't found in the filepath, then
 // we'll create them on start up. If we're unable to locate, or create the
 // macaroons we need, then we'll return with an error.
-func New(cfg *Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the chain notifier macaroon wasn't generated, then
 	// we'll assume that it's found at the default network directory.
 	if cfg.ChainNotifierMacPath == "" {
@@ -133,9 +132,9 @@ func New(cfg *Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	}
 
 	return &Server{
-		cfg:  *cfg,
-		quit: make(chan struct{}),
-		User_Id: UserId,//code edit
+		cfg:     *cfg,
+		quit:    make(chan struct{}),
+		User_Id: UserId, //code edit
 	}, macPermissions, nil
 }
 
@@ -198,16 +197,15 @@ func (s *Server) RegisterWithRootServer(grpcServer *grpc.Server) error {
 func (s *Server) RegisterConfirmationsNtfn(in *ConfRequest,
 	confStream ChainNotifier_RegisterConfirmationsNtfnServer) error {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	// We'll start by reconstructing the RPC request into what the
 	// underlying ChainNotifier expects.
 	var txid chainhash.Hash
@@ -304,16 +302,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) RegisterSpendNtfn(in *SpendRequest,
 	spendStream ChainNotifier_RegisterSpendNtfnServer) error {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	// We'll start by reconstructing the RPC request into what the
 	// underlying ChainNotifier expects.
 	var op *wire.OutPoint
@@ -421,16 +418,15 @@ for i:=0 ; i < len(Subserverpointers) ; i++ {
 func (s *Server) RegisterBlockEpochNtfn(in *BlockEpoch,
 	epochStream ChainNotifier_RegisterBlockEpochNtfnServer) error {
 
- 	//vyomesh code edit
-// for finding which sub server instance with userid hit the command 
-for i:=0 ; i < len(Subserverpointers) ; i++ {
-	if(in.User_Id == Subserverpointers[i].User_Id) {
-		s = Subserverpointers[i]
-	 break
+	//vyomesh code edit
+	// for finding which sub server instance with userid hit the command
+	for i := 0; i < len(Subserverpointers); i++ {
+		if in.User_Id == Subserverpointers[i].User_Id {
+			s = Subserverpointers[i]
+			break
+		}
 	}
-   }        
 
- 
 	// We'll start by reconstructing the RPC request into what the
 	// underlying ChainNotifier expects.
 	var hash chainhash.Hash

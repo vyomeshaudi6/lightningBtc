@@ -36,7 +36,7 @@ type Config struct {
 
 	// RouterBackend contains shared logic between this sub server and the
 	// main rpc server.
-	RouterBackend *RouterBackend
+	RouterBackend RouterBackend
 }
 
 // DefaultConfig defines the config defaults.

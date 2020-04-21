@@ -17,7 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	
 
 	// Blank import to set up profiling HTTP handlers.
 	_ "net/http/pprof"
@@ -43,6 +42,7 @@ import (
 	"github.com/lightningnetwork/lnd/lncfg"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/lnwallet"
+
 	//"github.com/lightningnetwork/lnd/lnwallet/btcwallet"
 	"github.com/lightningnetwork/lnd/macaroons"
 	"github.com/lightningnetwork/lnd/signal"
@@ -50,7 +50,6 @@ import (
 	"github.com/lightningnetwork/lnd/walletunlocker"
 	"github.com/lightningnetwork/lnd/watchtower"
 	"github.com/lightningnetwork/lnd/watchtower/wtdb"
-	
 )
 
 var (
@@ -60,11 +59,11 @@ var (
 	// networkDir is the path to the directory of the currently active
 	// network. This path will hold the files related to each different
 	// network.
-	networkDir string
-	graphDir   string
+	networkDir         string
+	graphDir           string
 	RpcserverInstances []*rpcServer
-	//byte_array []byte       
-	UserId     string // added userid for multiple server instances and passed to new server func
+	//byte_array []byte
+	UserId string // added userid for multiple server instances and passed to new server func
 	//byte_buf bytes.Buffer
 )
 
@@ -175,16 +174,16 @@ func Main(lisCfg ListenerCfg) error {
 			ltndLog.Errorf("Could not close log rotator: %v", err)
 		}
 	}()
-	//vyomesh  rpcserveeinstance byte conversion 
-	//enc := gob.NewEncoder(&byte_buf) 
+	//vyomesh  rpcserveeinstance byte conversion
+	//enc := gob.NewEncoder(&byte_buf)
 
 	//sql database connection
-/*	conn, err := sqlite3.Open("/Users/vyomesh/Library/Application Support/Lnd/opochdb.sqlite3")
-	if err != nil {
-		ltndLog.Error(fmt.Errorf("sql connection error: %v", err))
-	}
-	defer conn.Close()
-*/	//conn.BusyTimeout(5 * time.Second)
+	/*	conn, err := sqlite3.Open("/Users/vyomesh/Library/Application Support/Lnd/opochdb.sqlite3")
+		if err != nil {
+			ltndLog.Error(fmt.Errorf("sql connection error: %v", err))
+		}
+		defer conn.Close()
+	*/ //conn.BusyTimeout(5 * time.Second)
 	// Show version at startup.
 	ltndLog.Infof("Version: %s, build=%s, logging=%s",
 		build.Version(), build.Deployment, build.LoggingType)
@@ -244,29 +243,29 @@ func Main(lisCfg ListenerCfg) error {
 
 	// Open the channeldb, which is dedicated to storing channel, and
 	// network related metadata.
-/*	startOpenTime := time.Now()
-	chanDB, err := channeldb.Open(
-		graphDir,
-		channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
-		channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
-		channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
-	)
-	if err != nil {
-		err := fmt.Errorf("Unable to open channeldb: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	defer chanDB.Close()
+	/*	startOpenTime := time.Now()
+		chanDB, err := channeldb.Open(
+			graphDir,
+			channeldb.OptionSetRejectCacheSize(cfg.Caches.RejectCacheSize),
+			channeldb.OptionSetChannelCacheSize(cfg.Caches.ChannelCacheSize),
+			channeldb.OptionSetSyncFreelist(cfg.SyncFreelist),
+		)
+		if err != nil {
+			err := fmt.Errorf("Unable to open channeldb: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		defer chanDB.Close()
 
-	openTime := time.Since(startOpenTime)
-	ltndLog.Infof("Database now open (time_to_open=%v)!", openTime)
-*/
+		openTime := time.Since(startOpenTime)
+		ltndLog.Infof("Database now open (time_to_open=%v)!", openTime)
+	*/
 	// Only process macaroons if --no-macaroons isn't set.
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	tlsCfg, restCreds,err := getTLSConfig(
+	tlsCfg, restCreds, err := getTLSConfig(
 		cfg.TLSCertPath, cfg.TLSKeyPath, cfg.TLSExtraIPs,
 		cfg.TLSExtraDomains,
 	)
@@ -327,7 +326,7 @@ func Main(lisCfg ListenerCfg) error {
 	// getListeners is a closure that creates listeners from the
 	// RPCListeners defined in the config. It also returns a cleanup
 	// closure and the server options to use for the GRPC server.
-	getListeners := func(callerservice string) ([]*ListenerWithSignal, func(),error) {
+	getListeners := func(callerservice string) ([]*ListenerWithSignal, func(), error) {
 		var grpcListeners []*ListenerWithSignal
 		//modified added caller service check in order to reserve rpc 1st port for wallet unlocker service and remaining for lightning service
 		if callerservice == "walletaction" {
@@ -394,7 +393,7 @@ func Main(lisCfg ListenerCfg) error {
 		}
 
 		// Otherwise we'll return the regular listeners.
-		return  getListeners("walletaction")
+		return getListeners("walletaction")
 	}
 	listeners := make([]*net.TCPListener, len(cfg.Listeners))
 	for i, tcplistenAddr := range cfg.Listeners {
@@ -430,436 +429,443 @@ func Main(lisCfg ListenerCfg) error {
 				restProxyDest, "[::]", "[::1]", 1,
 			)
 		}
-	if !cfg.NoSeedBackup {
-		params, err := waitForWalletPassword(
-			cfg.RESTListeners, serverOpts, restDialOpts,
-			restProxyDest, tlsCfg, walletUnlockerListeners,
-		)
-		if err != nil {
-			err := fmt.Errorf("Unable to set up wallet password "+
-				"listeners: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-
-		walletInitParams = *params
-		privateWalletPw = walletInitParams.Password
-		publicWalletPw = walletInitParams.Password
-
-		if walletInitParams.RecoveryWindow > 0 {
-			ltndLog.Infof("Wallet recovery mode enabled with "+
-				"address lookahead of %d addresses",
-				walletInitParams.RecoveryWindow)
-		}
-	}
-	defer ChanDB.Close() // channel.db
-
-	// macaroons edit
-	// If a custom macaroon directory wasn't specified and the data
-	// directory has changed from the default path, then we'll also update
-	// the path for the macaroons to be generated.
-
-	cfg.AdminMacPath = filepath.Join(
-		graphDir, DefaultAdminMacFilename,
-	)
-	cfg.ReadMacPath = filepath.Join(
-		graphDir, DefaultReadMacFilename,
-	)
-	cfg.InvoiceMacPath = filepath.Join(
-		graphDir, DefaultInvoiceMacFilename,
-	)
-	var macaroonService *macaroons.Service
-	if !cfg.NoMacaroons {
-		// Create the macaroon authentication/authorization service.
-		macaroonService, err = macaroons.NewService(
-			networkDir, macaroons.IPLockChecker,
-		)
-		if err != nil {
-			err := fmt.Errorf("Unable to set up macaroon "+
-				"authentication: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-		defer macaroonService.Close()
-
-		// Try to unlock the macaroon store with the private password.
-		err = macaroonService.CreateUnlock(&privateWalletPw)
-		if err != nil {
-			err := fmt.Errorf("Unable to unlock macaroons: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-
-		// Create macaroon files for lncli to use if they don't exist.
-		if !fileExists(cfg.AdminMacPath) && !fileExists(cfg.ReadMacPath) &&
-			!fileExists(cfg.InvoiceMacPath) {
-
-			err = genMacaroons(
-				ctx, macaroonService, cfg.AdminMacPath,
-				cfg.ReadMacPath, cfg.InvoiceMacPath,
+		if !cfg.NoSeedBackup {
+			params, err := waitForWalletPassword(
+				cfg.RESTListeners, serverOpts, restDialOpts,
+				restProxyDest, tlsCfg, walletUnlockerListeners,
 			)
 			if err != nil {
-				err := fmt.Errorf("Unable to create macaroons "+
-					"%v", err)
+				err := fmt.Errorf("Unable to set up wallet password "+
+					"listeners: %v", err)
 				ltndLog.Error(err)
 				return err
 			}
-		}
-	}
 
-	// With the information parsed from the configuration, create valid
-	// instances of the pertinent interfaces required to operate the
-	// Lightning Network Daemon.
-	activeChainControl, err := newChainControlFromConfig(
-		cfg, ChanDB, privateWalletPw, publicWalletPw,
-		walletInitParams.Birthday, walletInitParams.RecoveryWindow,
-		walletInitParams.Wallet, neutrinoCS,
-	)
-	if err != nil {
-		err := fmt.Errorf("Unable to create chain control: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
+			walletInitParams = *params
+			privateWalletPw = walletInitParams.Password
+			publicWalletPw = walletInitParams.Password
 
-	// Finally before we start the server, we'll register the "holy
-	// trinity" of interface for our current "home chain" with the active
-	// chainRegistry interface.
-	primaryChain := registeredChains.PrimaryChain()
-	registeredChains.RegisterChain(primaryChain, activeChainControl)
-
-	// TODO(roasbeef): add rotation
-	idPrivKey, err := activeChainControl.wallet.DerivePrivKey(keychain.KeyDescriptor{
-		KeyLocator: keychain.KeyLocator{
-			Family: keychain.KeyFamilyNodeKey,
-			Index:  0,
-		},
-	})
-	if err != nil {
-		err := fmt.Errorf("Unable to derive node private key: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	idPrivKey.Curve = btcec.S256()
-
-	if cfg.Tor.Active {
-		srvrLog.Infof("Proxying all network traffic via Tor "+
-			"(stream_isolation=%v)! NOTE: Ensure the backend node "+
-			"is proxying over Tor as well", cfg.Tor.StreamIsolation)
-	}
-
-	// If the watchtower client should be active, open the client database.
-	// This is done here so that Close always executes when lndMain returns.
-	var towerClientDB *wtdb.ClientDB
-	if cfg.WtClient.Active {
-		var err error
-		towerClientDB, err = wtdb.OpenClientDB(graphDir)
-		if err != nil {
-			err := fmt.Errorf("Unable to open watchtower client "+
-				"database: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-		defer towerClientDB.Close()
-	}
-
-	// If tor is active and either v2 or v3 onion services have been specified,
-	// make a tor controller and pass it into both the watchtower server and
-	// the regular lnd server.
-	var torController *tor.Controller
-	if cfg.Tor.Active && (cfg.Tor.V2 || cfg.Tor.V3) {
-		torController = tor.NewController(
-			cfg.Tor.Control, cfg.Tor.TargetIPAddress, cfg.Tor.Password,
-		)
-
-		// Start the tor controller before giving it to any other subsystems.
-		if err := torController.Start(); err != nil {
-			err := fmt.Errorf("unable to initialize tor controller: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-		defer func() {
-			if err := torController.Stop(); err != nil {
-				ltndLog.Errorf("error stopping tor controller: %v", err)
-			}
-		}()
-	}
-
-	var tower *watchtower.Standalone
-	if cfg.Watchtower.Active {
-		// Segment the watchtower directory by chain and network.
-		towerDBDir := filepath.Join(
-			cfg.Watchtower.TowerDir,
-			registeredChains.PrimaryChain().String(),
-			normalizeNetwork(activeNetParams.Name),
-		)
-
-		towerDB, err := wtdb.OpenTowerDB(towerDBDir)
-		if err != nil {
-			err := fmt.Errorf("Unable to open watchtower "+
-				"database: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-		defer towerDB.Close()
-
-		towerPrivKey, err := activeChainControl.wallet.DerivePrivKey(
-			keychain.KeyDescriptor{
-				KeyLocator: keychain.KeyLocator{
-					Family: keychain.KeyFamilyTowerID,
-					Index:  0,
-				},
-			},
-		)
-		if err != nil {
-			err := fmt.Errorf("Unable to derive watchtower "+
-				"private key: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-
-		wtCfg := &watchtower.Config{
-			BlockFetcher:   activeChainControl.chainIO,
-			DB:             towerDB,
-			EpochRegistrar: activeChainControl.chainNotifier,
-			Net:            cfg.net,
-			NewAddress: func() (btcutil.Address, error) {
-				return activeChainControl.wallet.NewAddress(
-					lnwallet.WitnessPubKey, false,
-				)
-			},
-			NodePrivKey: towerPrivKey,
-			PublishTx:   activeChainControl.wallet.PublishTransaction,
-			ChainHash:   *activeNetParams.GenesisHash,
-		}
-
-		// If there is a tor controller (user wants auto hidden services), then
-		// store a pointer in the watchtower config.
-		if torController != nil {
-			wtCfg.TorController = torController
-			wtCfg.WatchtowerKeyPath = cfg.Tor.WatchtowerKeyPath
-
-			switch {
-			case cfg.Tor.V2:
-				wtCfg.Type = tor.V2
-			case cfg.Tor.V3:
-				wtCfg.Type = tor.V3
+			if walletInitParams.RecoveryWindow > 0 {
+				ltndLog.Infof("Wallet recovery mode enabled with "+
+					"address lookahead of %d addresses",
+					walletInitParams.RecoveryWindow)
 			}
 		}
+		defer ChanDB.Close() // channel.db
 
-		wtConfig, err := cfg.Watchtower.Apply(wtCfg, lncfg.NormalizeAddresses)
-		if err != nil {
-			err := fmt.Errorf("Unable to configure watchtower: %v",
-				err)
-			ltndLog.Error(err)
-			return err
-		}
+		// macaroons edit
+		// If a custom macaroon directory wasn't specified and the data
+		// directory has changed from the default path, then we'll also update
+		// the path for the macaroons to be generated.
 
-		tower, err = watchtower.New(wtConfig)
-		if err != nil {
-			err := fmt.Errorf("Unable to create watchtower: %v", err)
-			ltndLog.Error(err)
-			return err
-		}
-	}
-
-	// Initialize the ChainedAcceptor.
-	chainedAcceptor := chanacceptor.NewChainedAcceptor()
-
-	// Set up the core server which will listen for incoming peer
-	// connections.
-	server, err := newServer(
-		cfg.Listeners, ChanDB, towerClientDB, activeChainControl,
-		idPrivKey, walletInitParams.ChansToRestore, chainedAcceptor,
-		torController,UserId,
-	)
-	if err != nil {
-		err := fmt.Errorf("Unable to create server: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	// sql insert into table (is_active,is_deleted,created_at,updated_at,channel_id,macaroons_encrypted,opening_tx_id,closing_tx_id, allocated,pub_key,closed,macaroons_encrypted,macaroons_sent,macaroons_deleted,port, user_id)
-	/*	err = conn.Exec("INSERT INTO nms_interface  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",435,false,false,"null","null","null","null","null","null",false,hex.EncodeToString(idPrivKey.PubKey().SerializeCompressed()),false,false,false,false,cfg.Listeners[i].String(),UserId)
-		if err != nil {
-			ltndLog.Error(fmt.Errorf("sql insert into table  error: %v", err))
-		}
-	*/	
-
-	// Set up an autopilot manager from the current config. This will be
-	// used to manage the underlying autopilot agent, starting and stopping
-	// it at will.
-	atplCfg, err := initAutoPilot(server, cfg.Autopilot, mainChain)
-	if err != nil {
-		err := fmt.Errorf("Unable to initialize autopilot: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-
-	atplManager, err := autopilot.NewManager(atplCfg)
-	if err != nil {
-		err := fmt.Errorf("Unable to create autopilot manager: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	if err := atplManager.Start(); err != nil {
-		err := fmt.Errorf("Unable to start autopilot manager: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	defer atplManager.Stop()
-
-	// rpcListeners is a closure we'll hand to the rpc server, that will be
-	// called when it needs listeners for its GPRC server.
-	rpcListeners := func() ([]*ListenerWithSignal, func(), error) {
-		// If we have chosen to start with a dedicated listener for the
-		// rpc server, we return it directly.
-		if lisCfg.RPCListener != nil {
-			return []*ListenerWithSignal{lisCfg.RPCListener},
-				func() {}, nil
-		}
-
-		// Otherwise we'll return the regular listeners.
-		return getListeners("lightningaction")
-	}
-
-	// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
-	restProxyDest = cfg.RPCListeners[1].String()
-	switch {
-	case strings.Contains(restProxyDest, "0.0.0.0"):
-		restProxyDest = strings.Replace(
-			restProxyDest, "0.0.0.0", "127.0.0.1", 1,
+		cfg.AdminMacPath = filepath.Join(
+			graphDir, DefaultAdminMacFilename,
 		)
-
-	case strings.Contains(restProxyDest, "[::]"):
-		restProxyDest = strings.Replace(
-			restProxyDest, "[::]", "[::1]", 1,
+		cfg.ReadMacPath = filepath.Join(
+			graphDir, DefaultReadMacFilename,
 		)
-	}
-
-	// Initialize, and register our implementation of the gRPC interface
-	// exported by the rpcServer.
-	rpcServer, err := newRPCServer(
-		server, macaroonService, cfg.SubRPCServers, serverOpts,
-		restDialOpts, restProxyDest, atplManager, server.invoices,
-		tower, tlsCfg, rpcListeners, chainedAcceptor,UserId,
-	)
-	//code edit storing instances of rpcserve in slice
-	RpcserverInstances = append(RpcserverInstances, rpcServer)
-	if err != nil {
-		err := fmt.Errorf("Unable to create RPC server: %v", err)
-		ltndLog.Error(err)
-		return err
-	} 
-/*	// saving rpc instances to a file 
-	rpcInstancesPath := filepath.Join("test_data_PrvW",
-	defaultGraphSubDirname,
-	normalizeNetwork(activeNetParams.Name), "rpcserverinstances.txt")
-
-	//enc := gob.NewEncoder(&byte_buf) 
-	for i:=0 ; i < len(RpcserverInstances) ; i++ {
-		r := RpcserverInstances[i]
-		err := enc.Encode(r)
-	if err != nil {
-        ltndLog.Error(err)
-      }
-	  byte_array = byte_buf.Bytes()       
-   
-   if i== 1 {
-	err = ioutil.WriteFile(rpcInstancesPath, byte_array, 0644)
-    if err != nil {
-		err := fmt.Errorf("error on rpcserverinstance write : ", err)
-		ltndLog.Error(err)
-		return err
-	}
-}
-}
-*/
-	if err := rpcServer.Start(); err != nil {
-		err := fmt.Errorf("Unable to start RPC server: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	defer rpcServer.Stop()
-
-	// If we're not in regtest or simnet mode, We'll wait until we're fully
-	// synced to continue the start up of the remainder of the daemon. This
-	// ensures that we don't accept any possibly invalid state transitions, or
-	// accept channels with spent funds.
-	if !(cfg.Bitcoin.RegTest || cfg.Bitcoin.SimNet ||
-		cfg.Litecoin.RegTest || cfg.Litecoin.SimNet) {
-
-		_, bestHeight, err := activeChainControl.chainIO.GetBestBlock()
-		if err != nil {
-			err := fmt.Errorf("Unable to determine chain tip: %v",
-				err)
-			ltndLog.Error(err)
-			return err
-		}
-
-		ltndLog.Infof("Waiting for chain backend to finish sync, "+
-			"start_height=%v", bestHeight)
-
-		for {
-			if !signal.Alive() {
-				return nil
-			}
-
-			synced, _, err := activeChainControl.wallet.IsSynced()
+		cfg.InvoiceMacPath = filepath.Join(
+			graphDir, DefaultInvoiceMacFilename,
+		)
+		var macaroonService *macaroons.Service
+		if !cfg.NoMacaroons {
+			// Create the macaroon authentication/authorization service.
+			macaroonService, err = macaroons.NewService(
+				graphDir, macaroons.IPLockChecker,
+			)
 			if err != nil {
-				err := fmt.Errorf("Unable to determine if "+
-					"wallet is synced: %v", err)
+				err := fmt.Errorf("Unable to set up macaroon "+
+					"authentication: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
+			defer macaroonService.Close()
+
+			// Try to unlock the macaroon store with the private password.
+			err = macaroonService.CreateUnlock(&privateWalletPw)
+			if err != nil {
+				err := fmt.Errorf("Unable to unlock macaroons: %v", err)
 				ltndLog.Error(err)
 				return err
 			}
 
-			if synced {
-				break
+			// Create macaroon files for lncli to use if they don't exist.
+			if !fileExists(cfg.AdminMacPath) && !fileExists(cfg.ReadMacPath) &&
+				!fileExists(cfg.InvoiceMacPath) {
+
+				err = genMacaroons(
+					ctx, macaroonService, cfg.AdminMacPath,
+					cfg.ReadMacPath, cfg.InvoiceMacPath,
+				)
+				if err != nil {
+					err := fmt.Errorf("Unable to create macaroons "+
+						"%v", err)
+					ltndLog.Error(err)
+					return err
+				}
+			}
+		}
+
+		// With the information parsed from the configuration, create valid
+		// instances of the pertinent interfaces required to operate the
+		// Lightning Network Daemon.
+		activeChainControl, err := newChainControlFromConfig(
+			cfg, ChanDB, privateWalletPw, publicWalletPw,
+			walletInitParams.Birthday, walletInitParams.RecoveryWindow,
+			walletInitParams.Wallet, neutrinoCS,
+		)
+		if err != nil {
+			err := fmt.Errorf("Unable to create chain control: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+
+		// Finally before we start the server, we'll register the "holy
+		// trinity" of interface for our current "home chain" with the active
+		// chainRegistry interface.
+		primaryChain := registeredChains.PrimaryChain()
+		registeredChains.RegisterChain(primaryChain, activeChainControl)
+
+		// TODO(roasbeef): add rotation
+		idPrivKey, err := activeChainControl.wallet.DerivePrivKey(keychain.KeyDescriptor{
+			KeyLocator: keychain.KeyLocator{
+				Family: keychain.KeyFamilyNodeKey,
+				Index:  0,
+			},
+		})
+		if err != nil {
+			err := fmt.Errorf("Unable to derive node private key: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		idPrivKey.Curve = btcec.S256()
+
+		if cfg.Tor.Active {
+			srvrLog.Infof("Proxying all network traffic via Tor "+
+				"(stream_isolation=%v)! NOTE: Ensure the backend node "+
+				"is proxying over Tor as well", cfg.Tor.StreamIsolation)
+		}
+
+		// If the watchtower client should be active, open the client database.
+		// This is done here so that Close always executes when lndMain returns.
+		var towerClientDB *wtdb.ClientDB
+		if cfg.WtClient.Active {
+			var err error
+			towerClientDB, err = wtdb.OpenClientDB(graphDir)
+			if err != nil {
+				err := fmt.Errorf("Unable to open watchtower client "+
+					"database: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
+			defer towerClientDB.Close()
+		}
+
+		// If tor is active and either v2 or v3 onion services have been specified,
+		// make a tor controller and pass it into both the watchtower server and
+		// the regular lnd server.
+		var torController *tor.Controller
+		if cfg.Tor.Active && (cfg.Tor.V2 || cfg.Tor.V3) {
+			torController = tor.NewController(
+				cfg.Tor.Control, cfg.Tor.TargetIPAddress, cfg.Tor.Password,
+			)
+
+			// Start the tor controller before giving it to any other subsystems.
+			if err := torController.Start(); err != nil {
+				err := fmt.Errorf("unable to initialize tor controller: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
+			defer func() {
+				if err := torController.Stop(); err != nil {
+					ltndLog.Errorf("error stopping tor controller: %v", err)
+				}
+			}()
+		}
+
+		var tower *watchtower.Standalone
+		if cfg.Watchtower.Active {
+			// Segment the watchtower directory by chain and network.
+			towerDBDir := filepath.Join(
+				cfg.Watchtower.TowerDir,
+				registeredChains.PrimaryChain().String(),
+				normalizeNetwork(activeNetParams.Name),
+			)
+
+			towerDB, err := wtdb.OpenTowerDB(towerDBDir)
+			if err != nil {
+				err := fmt.Errorf("Unable to open watchtower "+
+					"database: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
+			defer towerDB.Close()
+
+			towerPrivKey, err := activeChainControl.wallet.DerivePrivKey(
+				keychain.KeyDescriptor{
+					KeyLocator: keychain.KeyLocator{
+						Family: keychain.KeyFamilyTowerID,
+						Index:  0,
+					},
+				},
+			)
+			if err != nil {
+				err := fmt.Errorf("Unable to derive watchtower "+
+					"private key: %v", err)
+				ltndLog.Error(err)
+				return err
 			}
 
-			time.Sleep(time.Second * 1)
+			wtCfg := &watchtower.Config{
+				BlockFetcher:   activeChainControl.chainIO,
+				DB:             towerDB,
+				EpochRegistrar: activeChainControl.chainNotifier,
+				Net:            cfg.net,
+				NewAddress: func() (btcutil.Address, error) {
+					return activeChainControl.wallet.NewAddress(
+						lnwallet.WitnessPubKey, false,
+					)
+				},
+				NodePrivKey: towerPrivKey,
+				PublishTx:   activeChainControl.wallet.PublishTransaction,
+				ChainHash:   *activeNetParams.GenesisHash,
+			}
+
+			// If there is a tor controller (user wants auto hidden services), then
+			// store a pointer in the watchtower config.
+			if torController != nil {
+				wtCfg.TorController = torController
+				wtCfg.WatchtowerKeyPath = cfg.Tor.WatchtowerKeyPath
+
+				switch {
+				case cfg.Tor.V2:
+					wtCfg.Type = tor.V2
+				case cfg.Tor.V3:
+					wtCfg.Type = tor.V3
+				}
+			}
+
+			wtConfig, err := cfg.Watchtower.Apply(wtCfg, lncfg.NormalizeAddresses)
+			if err != nil {
+				err := fmt.Errorf("Unable to configure watchtower: %v",
+					err)
+				ltndLog.Error(err)
+				return err
+			}
+
+			tower, err = watchtower.New(wtConfig)
+			if err != nil {
+				err := fmt.Errorf("Unable to create watchtower: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
 		}
 
-		_, bestHeight, err = activeChainControl.chainIO.GetBestBlock()
+		// Initialize the ChainedAcceptor.
+		chainedAcceptor := chanacceptor.NewChainedAcceptor()
+
+		// Set up the core server which will listen for incoming peer
+		// connections.
+		server, err := newServer(
+			cfg.Listeners, ChanDB, towerClientDB, activeChainControl,
+			idPrivKey, walletInitParams.ChansToRestore, chainedAcceptor,
+			torController, UserId,
+		)
 		if err != nil {
-			err := fmt.Errorf("Unable to determine chain tip: %v",
-				err)
+			err := fmt.Errorf("Unable to create server: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		// sql insert into table (is_active,is_deleted,created_at,updated_at,channel_id,macaroons_encrypted,opening_tx_id,closing_tx_id, allocated,pub_key,closed,macaroons_encrypted,macaroons_sent,macaroons_deleted,port, user_id)
+		/*	err = conn.Exec("INSERT INTO nms_interface  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",435,false,false,"null","null","null","null","null","null",false,hex.EncodeToString(idPrivKey.PubKey().SerializeCompressed()),false,false,false,false,cfg.Listeners[i].String(),UserId)
+			if err != nil {
+				ltndLog.Error(fmt.Errorf("sql insert into table  error: %v", err))
+			}
+		*/
+
+		// Set up an autopilot manager from the current config. This will be
+		// used to manage the underlying autopilot agent, starting and stopping
+		// it at will.
+		atplCfg, err := initAutoPilot(server, cfg.Autopilot, mainChain)
+		if err != nil {
+			err := fmt.Errorf("Unable to initialize autopilot: %v", err)
 			ltndLog.Error(err)
 			return err
 		}
 
-		ltndLog.Infof("Chain backend is fully synced (end_height=%v)!",
-			bestHeight)
-	}
-
-	// With all the relevant chains initialized, we can finally start the
-	// server itself.
-	if err := server.Start(); err != nil {
-		err := fmt.Errorf("Unable to start server: %v", err)
-		ltndLog.Error(err)
-		return err
-	}
-	defer server.Stop()
-
-	// Now that the server has started, if the autopilot mode is currently
-	// active, then we'll start the autopilot agent immediately. It will be
-	// stopped together with the autopilot service.
-	if cfg.Autopilot.Active {
-		if err := atplManager.StartAgent(); err != nil {
-			err := fmt.Errorf("Unable to start autopilot agent: %v",
-				err)
+		atplManager, err := autopilot.NewManager(atplCfg)
+		if err != nil {
+			err := fmt.Errorf("Unable to create autopilot manager: %v", err)
 			ltndLog.Error(err)
 			return err
 		}
-	}
-
-	if cfg.Watchtower.Active {
-		if err := tower.Start(); err != nil {
-			err := fmt.Errorf("Unable to start watchtower: %v", err)
+		if err := atplManager.Start(); err != nil {
+			err := fmt.Errorf("Unable to start autopilot manager: %v", err)
 			ltndLog.Error(err)
 			return err
 		}
-		defer tower.Stop()
-	}
-} //for loop ends
+		defer atplManager.Stop()
+
+		// rpcListeners is a closure we'll hand to the rpc server, that will be
+		// called when it needs listeners for its GPRC server.
+		rpcListeners := func() ([]*ListenerWithSignal, func(), error) {
+			// If we have chosen to start with a dedicated listener for the
+			// rpc server, we return it directly.
+			if lisCfg.RPCListener != nil {
+				return []*ListenerWithSignal{lisCfg.RPCListener},
+					func() {}, nil
+			}
+
+			// Otherwise we'll return the regular listeners.
+			return getListeners("lightningaction")
+		}
+
+		// restproxy des modified linked 2nd rpc port and 1nd rest port for lightning service
+		restProxyDest = cfg.RPCListeners[1].String()
+		switch {
+		case strings.Contains(restProxyDest, "0.0.0.0"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "0.0.0.0", "127.0.0.1", 1,
+			)
+
+		case strings.Contains(restProxyDest, "[::]"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "[::]", "[::1]", 1,
+			)
+		}
+
+		// Initialize, and register our implementation of the gRPC interface
+		// exported by the rpcServer.
+		rpcServer, err := newRPCServer(
+			server, macaroonService, cfg.SubRPCServers, serverOpts,
+			restDialOpts, restProxyDest, atplManager, server.invoices,
+			tower, tlsCfg, rpcListeners, chainedAcceptor, UserId,
+		)
+		/*	//vyomesh subserver config modified for routerrpc subserver and signrpc
+			err = cfg.subserverconfigmodify()
+			if err != nil {
+				ltndLog.Error(err)
+
+			}
+		*/
+		//code edit storing instances of rpcserve in slice
+		RpcserverInstances = append(RpcserverInstances, rpcServer)
+		if err != nil {
+			err := fmt.Errorf("Unable to create RPC server: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		/*	// saving rpc instances to a file
+				rpcInstancesPath := filepath.Join("test_data_PrvW",
+				defaultGraphSubDirname,
+				normalizeNetwork(activeNetParams.Name), "rpcserverinstances.txt")
+
+				//enc := gob.NewEncoder(&byte_buf)
+				for i:=0 ; i < len(RpcserverInstances) ; i++ {
+					r := RpcserverInstances[i]
+					err := enc.Encode(r)
+				if err != nil {
+			        ltndLog.Error(err)
+			      }
+				  byte_array = byte_buf.Bytes()
+
+			   if i== 1 {
+				err = ioutil.WriteFile(rpcInstancesPath, byte_array, 0644)
+			    if err != nil {
+					err := fmt.Errorf("error on rpcserverinstance write : ", err)
+					ltndLog.Error(err)
+					return err
+				}
+			}
+			}
+		*/
+		if err := rpcServer.Start(); err != nil {
+			err := fmt.Errorf("Unable to start RPC server: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		defer rpcServer.Stop()
+
+		// If we're not in regtest or simnet mode, We'll wait until we're fully
+		// synced to continue the start up of the remainder of the daemon. This
+		// ensures that we don't accept any possibly invalid state transitions, or
+		// accept channels with spent funds.
+		if !(cfg.Bitcoin.RegTest || cfg.Bitcoin.SimNet ||
+			cfg.Litecoin.RegTest || cfg.Litecoin.SimNet) {
+
+			_, bestHeight, err := activeChainControl.chainIO.GetBestBlock()
+			if err != nil {
+				err := fmt.Errorf("Unable to determine chain tip: %v",
+					err)
+				ltndLog.Error(err)
+				return err
+			}
+
+			ltndLog.Infof("Waiting for chain backend to finish sync, "+
+				"start_height=%v", bestHeight)
+
+			for {
+				if !signal.Alive() {
+					return nil
+				}
+
+				synced, _, err := activeChainControl.wallet.IsSynced()
+				if err != nil {
+					err := fmt.Errorf("Unable to determine if "+
+						"wallet is synced: %v", err)
+					ltndLog.Error(err)
+					return err
+				}
+
+				if synced {
+					break
+				}
+
+				time.Sleep(time.Second * 1)
+			}
+
+			_, bestHeight, err = activeChainControl.chainIO.GetBestBlock()
+			if err != nil {
+				err := fmt.Errorf("Unable to determine chain tip: %v",
+					err)
+				ltndLog.Error(err)
+				return err
+			}
+
+			ltndLog.Infof("Chain backend is fully synced (end_height=%v)!",
+				bestHeight)
+		}
+
+		// With all the relevant chains initialized, we can finally start the
+		// server itself.
+		if err := server.Start(); err != nil {
+			err := fmt.Errorf("Unable to start server: %v", err)
+			ltndLog.Error(err)
+			return err
+		}
+		defer server.Stop()
+
+		// Now that the server has started, if the autopilot mode is currently
+		// active, then we'll start the autopilot agent immediately. It will be
+		// stopped together with the autopilot service.
+		if cfg.Autopilot.Active {
+			if err := atplManager.StartAgent(); err != nil {
+				err := fmt.Errorf("Unable to start autopilot agent: %v",
+					err)
+				ltndLog.Error(err)
+				return err
+			}
+		}
+
+		if cfg.Watchtower.Active {
+			if err := tower.Start(); err != nil {
+				err := fmt.Errorf("Unable to start watchtower: %v", err)
+				ltndLog.Error(err)
+				return err
+			}
+			defer tower.Stop()
+		}
+	} //for loop ends
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.
 	<-signal.ShutdownChannel()
@@ -881,14 +887,14 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			cert.DefaultAutogenValidity,
 		)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 		rpcsLog.Infof("Done generating TLS certificates")
 	}
 
 	certData, parsedCert, err := cert.LoadCert(tlsCertPath, tlsKeyPath)
 	if err != nil {
-		return nil, nil,  err
+		return nil, nil, err
 	}
 
 	// We check whether the certifcate we have on disk match the IPs and
@@ -901,7 +907,7 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			parsedCert, tlsExtraIPs, tlsExtraDomains,
 		)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 	}
 
@@ -913,12 +919,12 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 
 		err := os.Remove(tlsCertPath)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 
 		err = os.Remove(tlsKeyPath)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 
 		rpcsLog.Infof("Renewing TLS certificates...")
@@ -928,36 +934,36 @@ func getTLSConfig(tlsCertPath string, tlsKeyPath string, tlsExtraIPs,
 			cert.DefaultAutogenValidity,
 		)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 		rpcsLog.Infof("Done renewing TLS certificates")
 
 		// Reload the certificate data.
 		certData, _, err = cert.LoadCert(tlsCertPath, tlsKeyPath)
 		if err != nil {
-			return nil, nil,  err
+			return nil, nil, err
 		}
 	}
 
 	tlsCfg := cert.TLSConfFromCert(certData)
 	restCreds, err := credentials.NewClientTLSFromFile(tlsCertPath, "")
 	if err != nil {
-		return nil, nil,  err
+		return nil, nil, err
 	}
 
-/*	restProxyDest := rpcListeners[0].String()
-	switch {
-	case strings.Contains(restProxyDest, "0.0.0.0"):
-		restProxyDest = strings.Replace(
-			restProxyDest, "0.0.0.0", "127.0.0.1", 1,
-		)
+	/*	restProxyDest := rpcListeners[0].String()
+		switch {
+		case strings.Contains(restProxyDest, "0.0.0.0"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "0.0.0.0", "127.0.0.1", 1,
+			)
 
-	case strings.Contains(restProxyDest, "[::]"):
-		restProxyDest = strings.Replace(
-			restProxyDest, "[::]", "[::1]", 1,
-		)
-	}
-*/
+		case strings.Contains(restProxyDest, "[::]"):
+			restProxyDest = strings.Replace(
+				restProxyDest, "[::]", "[::1]", 1,
+			)
+		}
+	*/
 	return tlsCfg, &restCreds, nil
 }
 
@@ -1069,7 +1075,7 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 
 	// Start a gRPC server listening for HTTP/2 connections, solely used
 	// for getting the encryption password from the client.
-	listeners, cleanup,err := getListeners()
+	listeners, cleanup, err := getListeners()
 	if err != nil {
 		return nil, err
 	}
@@ -1195,7 +1201,7 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 				cipherSeed.InternalVersion,
 				keychain.KeyDerivationVersion)
 		}
-//code modify by -----start--------
+		//code modify by -----start--------
 		//netDir := btcwallet.NetworkDir(
 		//	chainConfig.ChainDir, activeNetParams.Params,
 		//)
@@ -1241,7 +1247,6 @@ func waitForWalletPassword(restEndpoints []net.Addr,
 		ltndLog.Infof("lnd.go after opening channeldb.open channeled opened success")
 		// added userid for multiple server instance
 		UserId = initMsg.UniqueId
-
 
 		return &WalletUnlockParams{
 			Password:       password,
