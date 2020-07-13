@@ -51,7 +51,7 @@ var _ WatchtowerServer = (*Handler)(nil)
 // on start up. If we're unable to locate, or create the macaroons we need, then
 // we'll return with an error.
 func New(cfg Config, UserId string) (*Handler, lnrpc.MacaroonPerms, error) {
-	return &Handler{*cfg, UserId}, macPermissions, nil
+	return &Handler{cfg, UserId}, macPermissions, nil
 }
 
 // Start launches any helper goroutines required for the Handler to function.

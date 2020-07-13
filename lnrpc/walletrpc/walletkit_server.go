@@ -100,7 +100,7 @@ var (
 // to execute common wallet operations. This includes requesting new addresses,
 // keys (for contracts!), and publishing transactions.
 type WalletKit struct {
-	cfg     *Config
+	cfg     Config
 	User_Id string
 }
 
@@ -148,6 +148,7 @@ func New(cfg Config, UserId string) (*WalletKit, lnrpc.MacaroonPerms, error) {
 
 	walletKit := &WalletKit{
 		cfg: cfg,
+                User_Id: UserId, //code edit
 	}
 
 	return walletKit, macPermissions, nil
@@ -201,7 +202,7 @@ func (w *WalletKit) DeriveNextKey(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -231,7 +232,7 @@ func (w *WalletKit) DeriveKey(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -261,7 +262,7 @@ func (w *WalletKit) NextAddr(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -286,7 +287,7 @@ func (w *WalletKit) PublishTransaction(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -323,7 +324,7 @@ func (w *WalletKit) SendOutputs(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -376,7 +377,7 @@ func (w *WalletKit) EstimateFee(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if req.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -413,7 +414,7 @@ func (w *WalletKit) PendingSweeps(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}
@@ -538,7 +539,7 @@ func (w *WalletKit) BumpFee(ctx context.Context,
 	// for finding which sub server instance with userid hit the command
 	for i := 0; i < len(Subserverpointers); i++ {
 		if in.User_Id == Subserverpointers[i].User_Id {
-			s = Subserverpointers[i]
+			w = Subserverpointers[i]
 			break
 		}
 	}

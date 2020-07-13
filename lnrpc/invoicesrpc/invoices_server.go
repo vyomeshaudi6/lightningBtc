@@ -70,7 +70,7 @@ var (
 type Server struct {
 	quit    chan struct{}
 	User_Id string
-	cfg     *Config
+	cfg     Config
 }
 
 // A compile time check to ensure that Server fully implements the

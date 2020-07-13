@@ -10,6 +10,7 @@ message KeyLocator {
 
     /// The precise index of the key being identified.
     int32 key_index = 2;
+    string User_Id = 3;
 }
 
 message KeyDescriptor {
@@ -24,6 +25,7 @@ message KeyDescriptor {
     or the raw bytes of the target key must be specified.
     */
     KeyLocator key_loc = 2;
+    string User_Id = 3;
 }
 
 message TxOut {

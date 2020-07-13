@@ -57,7 +57,7 @@ type Server struct {
 	started  int32 // To be used atomically.
 	shutdown int32 // To be used atomically.
 	User_Id  string
-	cfg      *Config
+	cfg      Config
 
 	manager *autopilot.Manager
 }

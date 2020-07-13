@@ -413,7 +413,7 @@ func Main(lisCfg ListenerCfg) error {
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
 	// for loop edit
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 50; i++ {
 		walletInitParams.Birthday = time.Now()
 		// code modified to get rest proxy set accoring to rpc port i.e linking rpc port and rest proxy port together
 		// restproxy des modified linkednd 1st rpc port and 1st rest port for wallet unlocker service

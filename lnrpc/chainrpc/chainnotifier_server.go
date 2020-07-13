@@ -132,7 +132,7 @@ func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	}
 
 	return &Server{
-		cfg:     *cfg,
+		cfg:     cfg,
 		quit:    make(chan struct{}),
 		User_Id: UserId, //code edit
 	}, macPermissions, nil

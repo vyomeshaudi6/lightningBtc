@@ -80,7 +80,7 @@ var (
 // lnd. This allows callers to create custom protocols, external to lnd, even
 // backed by multiple distinct lnd across independent failure domains.
 type Server struct {
-	cfg     *Config
+	cfg     Config
 	User_Id string
 }
 
