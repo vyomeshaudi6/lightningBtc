@@ -40,7 +40,7 @@ func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher, UserId s
 			"Routerpc")
 	}
 	//vyomesh code edit storing sub server
-	subserver, mac, err := New(*config, UserId)
+	subserver, mac, err := New(config, UserId)
 	Subserverpointers = append(Subserverpointers, subserver)
 	return subserver, mac, err
 }

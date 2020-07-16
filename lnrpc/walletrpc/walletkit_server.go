@@ -100,7 +100,7 @@ var (
 // to execute common wallet operations. This includes requesting new addresses,
 // keys (for contracts!), and publishing transactions.
 type WalletKit struct {
-	cfg     Config
+	cfg     *Config
 	User_Id string
 }
 
