@@ -5,7 +5,10 @@ import (
 
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
-
+var (
+	//subserver instance code edit
+	Subserverpointers []*Server
+)
 // createNewSubServer is a helper method that will create the new router sub
 // server given the main config dispatcher method. If we're unable to find the
 // config that is meant for us in the config dispatcher, then we'll exit with
@@ -40,7 +43,7 @@ func createNewSubServer(configRegistry lnrpc.SubServerConfigDispatcher, UserId s
 			"Routerpc")
 	}
 	//vyomesh code edit storing sub server
-	subserver, mac, err := New(config, UserId)
+	subserver, mac, err := New(*config, UserId)
 	Subserverpointers = append(Subserverpointers, subserver)
 	return subserver, mac, err
 }

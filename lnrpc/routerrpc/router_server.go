@@ -90,7 +90,7 @@ var (
 	// configuration file in this package.
 	DefaultRouterMacFilename = "router.macaroon"
 	//subserver instance code edit
-	Subserverpointers []*Server
+	//Subserverpointers []*Server
 )
 
 // Server is a stand alone sub RPC server which exposes functionality that
@@ -98,10 +98,9 @@ var (
 type Server struct {
 	started  int32 // To be used atomically.
 	shutdown int32 // To be used atomically.
-	User_Id  string
-	cfg      *Config
-
+	cfg     Config
 	quit chan struct{}
+	User_Id  string
 }
 
 // A compile time check to ensure that Server fully implements the RouterServer
@@ -123,7 +122,7 @@ func fileExists(name string) bool {
 // we're unable to create it, then an error will be returned. We also return
 // the set of permissions that we require as a server. At the time of writing
 // of this documentation, this is the same macaroon as as the admin macaroon.
-func New(cfg *Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
+func New(cfg Config, UserId string) (*Server, lnrpc.MacaroonPerms, error) {
 	// If the path of the router macaroon wasn't generated, then we'll
 	// assume that it's found at the default network directory.
 	if cfg.RouterMacPath == "" {
